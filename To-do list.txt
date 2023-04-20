@@ -1,0 +1,4 @@
+TO DO LIST 
+
+1. Open file throgh instance 
+2. add list of games 

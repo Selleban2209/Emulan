@@ -1,0 +1,23 @@
+.asideMenu{
+    width: 20%;
+ 
+    height: 100%;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    
+  
+    background: hsl(220,20%,10%, 1);
+    z-index:-1;
+    border-right: 1px solid rgba(255, 255, 255, 0.377) ;
+}
+
+
+.asideWrapper{ 
+
+    height: 80%;
+    display: flex;
+    
+    align-items: center;
+    justify-content: space-between;
+}
