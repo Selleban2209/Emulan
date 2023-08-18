@@ -3,22 +3,34 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
+use std::ffi::OsStr;
+use std::fmt::Display;
 use std::env;
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+
+static roms: [&str; 3] = [".nds",".gba",".iso"];
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+#[tauri::command]
+fn get_extension_from_filename(filename: &str) -> Option<&str> {
+    Path::new(filename)
+        .extension()
+        .and_then(OsStr::to_str)
+}
+
 
 #[tauri::command]
 fn openem(name: &str) -> String {
     let path = Path::new("src/DeSmuME_0.9.11_x64.exe");
     let display = path.display();
     // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
+    let _file = match File::open(&path) {
         Err(why) => panic!("couldn't open {}: {}", display, why),
         Ok(file) => file,
     };
@@ -36,14 +48,58 @@ fn filex(){
 }
 
 
+
+
 #[tauri::command]
-fn open_saved_path(path: &str)-> String{ 
-    let status = Command::new(path)
-    .arg("")
-    .status()
-    .expect("no rustc?");
+fn verify_rom(path:&str, filename:&str){
+
     
-    format!("cool {} code {}", status.success(), status.code().unwrap())
+}
+
+
+
+
+
+#[tauri::command]
+fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
+
+    if name == "VisualBoyAdvance" {
+        let status = Command::new(path)
+        .arg("C:\\Users\\salle\\Documents\\VisualBoy\\Pokemon - Emerald rouge 1.3.2 EX.gba")
+        .spawn()
+        .expect("no rustc?");
+    } else if name == "DeSmuME_0.9.11_x64" {
+        let status = Command::new(path)
+        .arg("C:\\Users\\salle\\Documents\\Desmume\\Randomizer\\POKEMON BLACK 2 RANDOMIZE FAZPTR.nds")
+        .spawn()
+        .expect("no rustc?");
+        
+    } else {
+        let status = Command::new(path)
+        .spawn()
+        .expect("no rustc?");
+        
+
+    }
+    let ext= get_extension_from_filename(filename);
+
+    println!("{:?}", ext);
+    if(get_extension_from_filename(filename)== Some("exew")){
+        println!("oh word uhuh");
+        
+    }
+    match ext{
+        Some("exe")=>println!("YIAH"),
+        _=>println!("default"),
+    }
+
+
+    let x = "testing loop";
+     for i in 0..roms.len()  {
+         println!("{}", roms[i]);
+     }
+    
+    format!("Path to emulator: {} {}", path, name)
 }
 
 #[tauri::command]

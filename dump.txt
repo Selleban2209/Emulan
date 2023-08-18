@@ -12,3 +12,26 @@
     setGreetMsg(await invoke("filex"))
 
   }
+
+
+    const imageContent  = async ()=> {
+    const selected = await open({
+      multiple: true,
+      filters: [{
+      name: 'Image',
+      extensions: ['png', 'jpeg', 'exe']
+      }]
+   });
+    if(selected!==null){
+      console.log( "imageContent test: ", selected)
+    }
+  }
+
+
+  
+                {emulators.map((item) =>(
+                    
+                    
+                <p key={item.id}>{item.name}</p>
+
+                ))}

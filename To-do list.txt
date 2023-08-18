@@ -1,4 +1,16 @@
 TO DO LIST 
 
-1. Open file throgh instance 
-2. add list of games 
+1. Legge til instanser av roms, launche riktig emulator basert på roms
+    - Gjenkjenne rom 
+    - Folder
+2. Mer UI, Main menu, Emulator views osv.
+3. Track running games/emulators 
+4. Create temp files for emulators?
+5. Set up server
+6. Definere default/minimum resolution 
+
+
+
+- Rust back end 
+- lister med gyldige roms, verifier senere 
+- structs? 

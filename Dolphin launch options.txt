@@ -1,0 +1,11 @@
+Usage: dolphin [/h] [/d] [/l] [/e <str>] [/b] [/V <str>] [/A <str>] [/m <str>] [/U <str>] [/P <str>]
+  /h, --help                    Show this help message
+  /d, --debugger                Opens the debugger
+  /l, --logger                  Opens the logger
+  /e, --exec=<str>              Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)
+  /b, --batch                   Exit Dolphin with emulator
+  /V, --video_backend=<str>     Specify a video backend
+  /A, --audio_emulation=<str>   Low level (LLE) or high level (HLE) audio
+  /m, --movie=<str>             Play a movie file
+  /U, --user=<str>              User folder path
+  /P, --perf_dir=<str>          Directory for Linux perf perf-$pid.map file
