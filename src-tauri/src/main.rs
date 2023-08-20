@@ -51,9 +51,19 @@ fn filex(){
 
 
 #[tauri::command]
-fn verify_rom(path:&str, filename:&str){
+fn verify_rom(path:&str, filename:&str) ->String {
 
-    
+    let ext= get_extension_from_filename(filename);
+
+    println!("{:?}", ext);
+    if get_extension_from_filename(filename)== Some("exew"){
+        println!("oh word uhuh");
+        
+    }
+    match ext{
+        Some("exe")=>println!("YIAH"), return "exe" , 
+        _=>println!("default"),
+    }
 }
 
 
@@ -62,6 +72,8 @@ fn verify_rom(path:&str, filename:&str){
 
 #[tauri::command]
 fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
+    
+    verify_rom(path, filename);
 
     if name == "VisualBoyAdvance" {
         let status = Command::new(path)
@@ -77,20 +89,8 @@ fn open_saved_path(path: &str, name:&str, filename:&str)-> String{
     } else {
         let status = Command::new(path)
         .spawn()
-        .expect("no rustc?");
-        
+        .expect("no rustc?");  
 
-    }
-    let ext= get_extension_from_filename(filename);
-
-    println!("{:?}", ext);
-    if(get_extension_from_filename(filename)== Some("exew")){
-        println!("oh word uhuh");
-        
-    }
-    match ext{
-        Some("exe")=>println!("YIAH"),
-        _=>println!("default"),
     }
 
 
@@ -110,7 +110,7 @@ fn test_path(path: &str)-> String{
 //   .arg( "C:\\Users\\salle\\Documents\\Backyard\\Emulan\\src-tauri\\src" ) // <- Specify the directory you'd like to open.
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, openem,filex, open_saved_path, test_path])
+        .invoke_handler(tauri::generate_handler![greet, openem,filex, open_saved_path, test_path,verify_rom])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -28,8 +28,8 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
         <p>{name}</p>
         <RenderPlatform />
         <p>{id}</p>
-        <button className="openBtn" >Verify</button>
-        <button className="openVerify" onClick={()=>openSavedPath()}>Open Emulator</button>   
+        <button className="verifyBtn" >Verify</button>
+        <button className="openBtn" onClick={()=>openSavedPath()}>Open Emulator</button>   
        
     </div>
     );
