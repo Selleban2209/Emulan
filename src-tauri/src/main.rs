@@ -61,9 +61,11 @@ fn verify_rom(path:&str, filename:&str) ->String {
         
     }
     match ext{
-        Some("exe")=>println!("YIAH"), return "exe" , 
+        Some("exe")=>println!("YIAH") , 
         _=>println!("default"),
     }
+
+    return "".to_string();
 }
 
 

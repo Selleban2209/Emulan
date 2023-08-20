@@ -4,9 +4,6 @@ This applications purpose is to provide a unified launcher for differnt games us
 
 
 
-# Tauri + React
-
-This template should help get you started developing with Tauri and React in Vite.
 
 ## Recommended IDE Setup
 
