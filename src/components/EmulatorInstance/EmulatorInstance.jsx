@@ -2,14 +2,25 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import {open } from  "@tauri-apps/api/dialog";
 import "./EmulatorInstance.css";
+import { appWindow, WebviewWindow } from '@tauri-apps/api/window';
+import { emit, listen } from '@tauri-apps/api/event'
 import * as logos from "../../assets/export";
 
+const listenTest = await listen("event_name", (eventPayload)  => {
+    console.log(eventPayload);
+});
 function EmulatorInstance ({name, id, path,filename, extension} ){
     const [errorMsg, setErrorMsg] = useState("");
+
     let idS = String(id);
     async function openSavedPath(){
     console.log("extension: ", filename, extension);
     setErrorMsg(await invoke("open_saved_path", {path, name, filename}).then((message) => console.log(message)));
+
+    }
+    async function verifyRom(){
+    console.log("extension: ", filename, extension);
+    setErrorMsg(await invoke("verify_rom", {path, filename}));
 
     }
 
@@ -28,9 +39,8 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
         <p>{name}</p>
         <RenderPlatform />
         <p>{id}</p>
-        <button className="verifyBtn" >Verify</button>
-        <button className="openBtn" onClick={()=>openSavedPath()}>Open Emulator</button>   
-       
+        <button className="verifyBtn" onClick={()=>verifyRom()}>Verify</button>
+        <button className="openBtn" onClick={()=>openSavedPath()}>Open Emulator</button>     
     </div>
     );
 

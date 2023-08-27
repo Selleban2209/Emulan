@@ -1,17 +1,32 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::fs::File;
+use tauri::{Manager, Window, AppHandle};
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::env;
+
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-static roms: [&str; 3] = [".nds",".gba",".iso"];
+struct Emulator {
+    name: String,
+}
+
+
+struct Gamerom {
+    rom_name: String, 
+    rom_extension: String, 
+    
+
+}
+
+
+static roms: [&str; 3] = ["nds","gba","iso"];
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -25,33 +40,10 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
 }
 
 
-#[tauri::command]
-fn openem(name: &str) -> String {
-    let path = Path::new("src/DeSmuME_0.9.11_x64.exe");
-    let display = path.display();
-    // Open the path in read-only mode, returns `io::Result<File>`
-    let _file = match File::open(&path) {
-        Err(why) => panic!("couldn't open {}: {}", display, why),
-        Ok(file) => file,
-    };
-    format!("Open File {}", name)
-}
-
-#[tauri::command]
-fn filex(){
-    println!( "Opening" );
-    Command::new( "explorer" )
-    .arg( ".\\src" ) // <- Specify the directory you'd like to open.
-    .spawn( )
-    .unwrap( );
-    open::with(".\\src\\try.txt", "explorer");
-}
-
-
 
 
 #[tauri::command]
-fn verify_rom(path:&str, filename:&str) ->String {
+fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
 
     let ext= get_extension_from_filename(filename);
 
@@ -60,6 +52,23 @@ fn verify_rom(path:&str, filename:&str) ->String {
         println!("oh word uhuh");
         
     }
+
+    let stringer = ext.unwrap();
+    let st2 = stringer.to_string();
+    println!("{} unrwaped string", st2 );
+    if roms.iter().any(|&i| i==st2) {
+
+        println!("Found item in list");
+
+        let mut game_rom1 = Gamerom{
+            rom_name: String::from(filename),
+            rom_extension: String::from(st2),
+        };
+    
+        app.emit_all("event_name", "eventpayload").unwrap();
+    }
+
+
     match ext{
         Some("exe")=>println!("YIAH") , 
         _=>println!("default"),
@@ -75,7 +84,7 @@ fn verify_rom(path:&str, filename:&str) ->String {
 #[tauri::command]
 fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
     
-    verify_rom(path, filename);
+    
 
     if name == "VisualBoyAdvance" {
         let status = Command::new(path)
@@ -112,7 +121,7 @@ fn test_path(path: &str)-> String{
 //   .arg( "C:\\Users\\salle\\Documents\\Backyard\\Emulan\\src-tauri\\src" ) // <- Specify the directory you'd like to open.
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, openem,filex, open_saved_path, test_path,verify_rom])
+        .invoke_handler(tauri::generate_handler![greet, open_saved_path, test_path,verify_rom])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
