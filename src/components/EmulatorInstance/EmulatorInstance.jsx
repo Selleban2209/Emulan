@@ -9,6 +9,8 @@ import * as logos from "../../assets/export";
 const listenTest = await listen("event_name", (eventPayload)  => {
     console.log(eventPayload);
 });
+
+
 function EmulatorInstance ({name, id, path,filename, extension} ){
     const [errorMsg, setErrorMsg] = useState("");
 

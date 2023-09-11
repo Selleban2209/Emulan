@@ -2,30 +2,42 @@
 use std::fs::File;
 use tauri::{Manager, Window, AppHandle};
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::ffi::OsStr;
+use walkdir::WalkDir;
+use serde::ser::Serialize;
 use std::fmt::Display;
 use std::env;
+//use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
 
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
-struct Emulator {
-    name: String,
+
+#[derive(serde::Serialize)]
+struct Point {
+    x: i32,
+    y: i32,
 }
 
 
+enum Emulator {
+    NintendoDS,
+    GameBoyAdvance,
+}
+
+#[derive(serde::Serialize)]
 struct Gamerom {
     rom_name: String, 
-    rom_extension: String, 
-    
+    rom_extension: String,     
 
 }
 
 
+//static GBASupport 
 static roms: [&str; 3] = ["nds","gba","iso"];
 
 #[tauri::command]
@@ -35,10 +47,17 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 fn get_extension_from_filename(filename: &str) -> Option<&str> {
     Path::new(filename)
-        .extension()
-        .and_then(OsStr::to_str)
+    .extension()
+    .and_then(OsStr::to_str)
 }
 
+pub fn find_emulators_on_startup( folder: &str) -> std::io::Result<()> {
+    let cur_path =env::current_dir()?;   
+    
+    println!("The current directory is {}", cur_path.display());
+    Ok(())
+
+}  
 
 
 
@@ -53,6 +72,12 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
         
     }
 
+    let point = Point { x: 1, y: 2 };
+
+    let serialized = serde_json::to_string(&point).unwrap();
+    println!("serialized = {}", serialized);
+
+
     let stringer = ext.unwrap();
     let st2 = stringer.to_string();
     println!("{} unrwaped string", st2 );
@@ -60,13 +85,16 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
 
         println!("Found item in list");
 
-        let mut game_rom1 = Gamerom{
+        let game_rom1 = Gamerom{
             rom_name: String::from(filename),
             rom_extension: String::from(st2),
         };
+
+        let serialized = serde_json::to_string(&game_rom1).unwrap();
     
-        app.emit_all("event_name", "eventpayload").unwrap();
+        app.emit_all("event_name", serialized).unwrap();
     }
+    let testDirect = find_emulators_on_startup("test");
 
 
     match ext{
@@ -74,11 +102,10 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
         _=>println!("default"),
     }
 
+    
+
     return "".to_string();
 }
-
-
-
 
 
 #[tauri::command]
@@ -121,7 +148,11 @@ fn test_path(path: &str)-> String{
 //   .arg( "C:\\Users\\salle\\Documents\\Backyard\\Emulan\\src-tauri\\src" ) // <- Specify the directory you'd like to open.
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, open_saved_path, test_path,verify_rom])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            open_saved_path,
+            test_path,verify_rom
+            ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

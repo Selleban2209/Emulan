@@ -19,3 +19,72 @@ Omveier
 - Rust back end 
 - lister med gyldige roms, verifier senere 
 - structs? 
+
+
+
+Mål for nå 
+
+//metode som kjører på launch 
+
+
+initiate_emulators (Something idk : something value ){
+    Kjører gjennom Emulators folder, scanner etter emulatorer og initialiserer dem. Om Roms 
+    har blitt lagret/kjørt gjennom app skal lokasjon lagres i en savefil. Den skal også loade ved launh 
+}
+
+
+
+
+Håndtere emulatorer 
+
+- De skal ha en del extension/spill de suporter 
+- Skal kunne gjenkjennes og lagres i en mappe 
+- 
+
+Enum/struct emulator {
+    navn 
+    Liste med extension/spill den supporter 
+    mer fluff 
+
+    
+
+}
+
+
+En emulator må ha en liste med extension den support 
+
+Hvordan vet vi hvilke de supporter? 
+ - Predetirmined av meg 
+Hvordan lagre dem 
+
+
+
+Sende opp extionsen 
+Sende ned info 
+
+sjekker får 
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------
+06.09.23
+
+Load cache from directory 
+
+option1 --> Bygge en cache fil som holder styr på pathing til roms/emulatorer, loadet det inn ved app startup 
+
+
+option2--> Streng pathing, søke gjennom path hente ut alt
+
+
+
+
