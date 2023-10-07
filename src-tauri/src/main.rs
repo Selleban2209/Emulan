@@ -8,7 +8,11 @@ use std::ffi::OsStr;
 use walkdir::WalkDir;
 use serde::ser::Serialize;
 use std::fmt::Display;
+use std::io;
+use std::fs::read_dir;
+use std::fs::{self, DirEntry};
 use std::env;
+
 //use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
 
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
@@ -51,15 +55,22 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
     .and_then(OsStr::to_str)
 }
 
-pub fn find_emulators_on_startup( folder: &str) -> std::io::Result<()> {
-    let cur_path =env::current_dir()?;   
-    
-    println!("The current directory is {}", cur_path.display());
+pub fn find_emulators_on_startup( path: String) -> std::io::Result<()> {
+    let cur_path =read_dir(path);   
+    for entry in cur_path? {
+        let path = entry?.path();
+        // Get path string.
+        let path_str = path.to_str().unwrap();
+        println!("PATH: {}", path_str);
+    }    
+   // println!("The current directory is {}", cur_path?.to_string().unwrap());
     Ok(())
 
 }  
 
-
+fn get_current_working_dir() -> std::io::Result<PathBuf> {
+    env::current_dir()
+}
 
 #[tauri::command]
 fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
@@ -94,7 +105,9 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     
         app.emit_all("event_name", serialized).unwrap();
     }
-    let testDirect = find_emulators_on_startup("test");
+    let ok = get_current_working_dir();
+    let yes = ok.unwrap().display().to_string();
+    let test_direct = find_emulators_on_startup(yes);
 
 
     match ext{

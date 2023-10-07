@@ -9,19 +9,6 @@ TO DO LIST
 5. Set up server
 6. Definere default/minimum resolution 
 
-g
-
-Omveier 
-1. Even listener mellom front og backend 
-2. Window generator 
-3. Thread håndtering 
-
-- Rust back end 
-- lister med gyldige roms, verifier senere 
-- structs? 
-
-
-
 Mål for nå 
 
 //metode som kjører på launch 
@@ -32,37 +19,20 @@ initiate_emulators (Something idk : something value ){
     har blitt lagret/kjørt gjennom app skal lokasjon lagres i en savefil. Den skal også loade ved launh 
 }
 
-
-
-
 Håndtere emulatorer 
 
 - De skal ha en del extension/spill de suporter 
 - Skal kunne gjenkjennes og lagres i en mappe 
-- 
 
 Enum/struct emulator {
     navn 
     Liste med extension/spill den supporter 
-    mer fluff 
-
-    
-
+    mer fluff  
 }
 
 
-En emulator må ha en liste med extension den support 
-
-Hvordan vet vi hvilke de supporter? 
- - Predetirmined av meg 
-Hvordan lagre dem 
 
 
-
-Sende opp extionsen 
-Sende ned info 
-
-sjekker får 
 
 
 
