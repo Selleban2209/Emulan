@@ -1,7 +1,7 @@
 .asideMenu{
     min-width: 15%;
     height: 100%;
-    background: hsl(220,20%,10%, 1);
+
     display: inline-block;
     justify-content: space-between;
     z-index:-1;

@@ -3,7 +3,7 @@
 .instance-div{
     display: flex;
     flex-direction: column;
-    background-color: rgb(54, 50, 50);
+  
     justify-content: space-between;
     box-sizing: border-box;
     gap: 0 25px;

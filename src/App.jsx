@@ -86,20 +86,20 @@ function App() {
     <div className="container">
       <div className="row">
           <button  onClick={readFileContents} type="submit">Select File</button>
+          <button>Settings</button>
       </div>
       <div className="flexBox">
-      <div className="sideMenu">
-        <SideMenu className="sideMenu"  value={emulators}/>
-      </div>
-      <div className="emulatorTab" >
-        <Routes>
-        <Route  path="/" element={<p>Main menu </p>} />
-        {emulators.map ((item) => (   
-          <Route  path={`/${item.subpath}`} element={<EmulatorInstance key= {item.id} {...item}  /> } />
-        ))}
-    
-        </Routes>
-          </div>
+        <div className="sideMenu">
+          <SideMenu className="sideMenu"  value={emulators}/>
+        </div>
+        <div className="emulatorTab" >
+          <Routes>
+          <Route  path="/" element={<p>Main menu </p>} />
+          {emulators.map ((item) => (   
+            <Route  path={`/${item.subpath}`} element={<EmulatorInstance key= {item.id} {...item}  /> } />
+          ))}   
+          </Routes>
+        </div>
       </div>
     </div>
          

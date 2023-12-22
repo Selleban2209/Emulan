@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import {open } from  "@tauri-apps/api/dialog";
 import "./EmulatorInstance.css";
 import { appWindow, WebviewWindow } from '@tauri-apps/api/window';
 import { emit, listen } from '@tauri-apps/api/event'

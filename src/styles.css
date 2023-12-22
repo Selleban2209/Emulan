@@ -13,83 +13,78 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
 html {
   height: 100%;
   width: 100%;
 }
 
-
 .container {
   margin: 0;
-  padding-top: 5vh;
+ 
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  height:100%;
-  width:100%;
 
-  
+  min-height: 98vh;
 }
-.flexBox{
+
+.row { 
+  background-color: hsl(210, 44%, 13%);
+  padding: 10px;
+  text-align: center;
   display: flex;
-  margin: 0; 
-  flex-direction: row;
-  
-  border-top: 1px solid rgba(255, 255, 255, 0.377) ;
-  /*border-right: 1px solid rgba(255, 255, 255, 0.377) ;*/
-
-  
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+ 
 }
 
+.selectFileButton {
+  background-color: #2ecc71;
+  color: #ffffff;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.flexBox {
+  display: flex;
+  margin: 0;
+  flex: 1; /* Take remaining vertical space */
+
+}
+.sideMenu {
+  
+  width: 15%;
+  background-color: hsl(214, 30%, 9%); /* Change the color as needed */
+  color: #ffffff;
+
+}
 .emulatorTab {
-  display:flex;
+  display: flex;
   flex-direction: column;
-  min-width:800px;
+  min-width: 800px;
   text-align: center;
   align-items: center;
   padding: 5px;
   margin-left: 15%;
- 
-
   width: 80%;
 }
 
 
-.instance-div:nth-of-type(even) {
-  background-color: #3e4356c2;
-}
-
-.instance-div:nth-of-type(odd) {
-  background-color: #282b32c9;
-}
 
 .row {
-  margin-top: 25px;
+
+  display: flex;
+  justify-content: center;
 
 }
-
-
-.sideMenu { 
-  border-right: 1px solid rgba(255, 255, 255, 0.377) ;
-  width: 15%;
-  height:  100%;
-  text-align: center;
-  font-size: 0;
-  position: fixed;
-
-
-
-}
-
-
-
 
 input,
 button {
-  
   min-width: 200px;
-  min-height:50px;
+  min-height: 50px;
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -106,12 +101,10 @@ button {
   cursor: pointer;
 }
 
-
-
 button:hover {
   border-color: #396cd8;
-
 }
+
 button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
@@ -129,9 +122,8 @@ button {
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
-    background-color: hsl(220,20%,10%, 1);
+    background-color: hsl(220, 20%, 10%, 1);
   }
-
 
   input,
   button {
