@@ -1,4 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod setting_cache;
+use setting_cache::Cache;
 use std::fs::File;
 use tauri::{Manager, Window, AppHandle};
 use std::io::prelude::*;
@@ -65,7 +67,7 @@ pub fn find_emulators_on_startup( path: String) -> std::io::Result<Vec<Emulator>
                 path: PathBuf::from(path),
                 filetype_support: Vec::from(Vec::new()),
             };
-           if emu.emulator_name == "VisualBoyAdvance" {
+            if emu.emulator_name == "VisualBoyAdvance" {
             
                emu.filetype_support.push("gba".to_string());
                println!("filetype list: {:?}", emu.filetype_support);
@@ -75,6 +77,12 @@ pub fn find_emulators_on_startup( path: String) -> std::io::Result<Vec<Emulator>
                    println!("item in list { }", item.emulator_name);
                    println!("type support: {:?}", item.filetype_support);
                 }
+            } else if emu.emulator_name == "DeSmuME_0.9.11_x64" {
+                emu.filetype_support.push("nds".to_string());
+                emulator_vec.push(emu);
+                for item  in emulator_vec.iter() {
+                }
+
             }
             
 
@@ -148,7 +156,7 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
 #[tauri::command]
 fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
     
-    let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string()).unwrap();
+ 
 
 
 
@@ -173,20 +181,35 @@ fn open_saved_path(path: &str, name:&str, filename:&str)-> String{
 
     println!("################### {}", ext.unwrap().to_string());
 
-if rom_extension_name == "gba"{
-    
-    for i in test_direct {
+    if rom_extension_name == "gba"{
+        let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string()).unwrap();
+        for i in test_direct {
 
-        if i.filetype_support.iter().any(|y| y=="gba"){
-            let status = Command::new(i.path)
-            .arg(path )
-            .spawn()
-            .expect("no rustc?");   
+            if i.filetype_support.iter().any(|y| y=="gba"){
+                let status = Command::new(i.path)
+                .arg(path )
+                .spawn()
+                .expect("no rustc?");   
 
-            println!("we got here");
-        }
+                println!("we got here");
+                }
+            }
+    } else if rom_extension_name == "nds" {
+        let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\Desmume".to_string()).unwrap();
+        for i in test_direct {
+
+            if i.filetype_support.iter().any(|y| y=="nds"){
+                let status = Command::new(i.path)
+                .arg(path )
+                .spawn()
+                .expect("no rustc?");   
+
+                println!("we got here");
+                }
+            }
+
+
     }
-}
 
 //Trenger searlized liste fra front end.
 
