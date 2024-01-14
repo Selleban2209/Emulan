@@ -7,9 +7,11 @@ use std::fs::OpenOptions;
 use std::io::{BufReader, Write};
 use std::sync::{Arc, Mutex};
 use std::path::{Path, PathBuf};
+use serde_json;
 
 pub struct Cache {
     cache_file_path: PathBuf,
+    folder_path:  Option<PathBuf>,
     data: HashMap<String, String>,
 
 }
@@ -18,14 +20,36 @@ impl Cache {
     pub fn new(cache_file_path: PathBuf) -> Self {
         Self{
             cache_file_path,
+            folder_path: None,
             data: HashMap::new(),
         }
     }
+    
+      // Save file paths to the cache file
+    pub fn create_cache(&mut self, rom_file_path: &str) -> io::Result<()> {
+                
+        let path =&self.cache_file_path.clone();  
+        let my_str = &path.as_path().to_string_lossy();
+        
+        println!("okaoskdaoskda {}", my_str);
 
-
+        //current error: 
+        //error seems to be file creation related causing function to return early 
+        let mut file_string = Path::new("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings\\cacheFile.json");
+        
+        let file = match File::create(&file_string){
+            Ok(file) => file,
+            Err(err) => {
+                eprintln!("Error creating file: {}", err);
+                return Err(err);
+            }
+        };
+       
+        Ok(())
+    }
 
        // Load file paths from the cache file
-       fn load_cache(&mut self) -> io::Result<()> {
+    fn load_cache(&mut self) -> io::Result<()> {
         if self.cache_file_path.exists() {
             let mut cache_file = File::open(&self.cache_file_path).expect("Failed to open cache file");
             let reader = BufReader::new(cache_file);
@@ -33,13 +57,15 @@ impl Cache {
             if let Ok(decompressed) = zstd::decode_all(reader) {
 
             }
-      
+        
         } else {
             // If the file doesn't exist, create an empty cache
             self.save_cache()?;
         }
         Ok(())
     }
+
+
 
     // Save file paths to the cache file
     pub fn save_cache(&self) -> io::Result<()> {
@@ -50,6 +76,9 @@ impl Cache {
         .truncate(true)
         .open(&self.cache_file_path)
         .unwrap();
+
+
+        let mut file = File::create(&self.cache_file_path)?;
         //fs::write(&self.cache_file_path, &serialized)?;
 
        // file.write_all()
@@ -57,11 +86,11 @@ impl Cache {
        file.write_all(
 
             &zstd::encode_all(serialized_cache.as_bytes(), 0)
-               .expect("Failed to compress cache contents.")[..]
+               .expect("Failed to compress cache contents.")
        ).unwrap();
 
         // Write the compressed data to the file
-        let mut file = File::create(&self.cache_file_path)?;
+        //let mut file = File::create(&self.cache_file_path)?;
 
         
         Ok(())

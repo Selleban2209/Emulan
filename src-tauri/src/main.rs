@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod setting_cache;
+
 use setting_cache::Cache;
 use std::fs::File;
 use tauri::{Manager, Window, AppHandle};
@@ -141,7 +142,11 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
 
     //println!("test directoy scan {}", test_direct.unwrap().len());
     //let searlized_emulator_list = serde_json::(&test_direct);
-
+    let cache_path =PathBuf::from("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings");
+    let mut test_cache = Cache::new(cache_path);
+    test_cache.create_cache(&path);
+  
+ 
     match ext{
         Some("exe")=>println!("YIAH") , 
         _=>println!("default"),
