@@ -7,6 +7,7 @@ use std::fs::OpenOptions;
 use std::io::{BufReader, Write};
 use std::sync::{Arc, Mutex};
 use std::path::{Path, PathBuf};
+use toml;
 use serde_json;
 
 pub struct Cache {
@@ -35,7 +36,9 @@ impl Cache {
 
         //current error: 
         //error seems to be file creation related causing function to return early 
-        let mut file_string = Path::new("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings\\cacheFile.json");
+        let mut file_string = Path::new("C:\\Users\\salle\\Documents\\backyard\\EmulatorAppConfigTesting\\cacheFile.toml");
+
+        
         
         let file = match File::create(&file_string){
             Ok(file) => file,
@@ -60,7 +63,7 @@ impl Cache {
         
         } else {
             // If the file doesn't exist, create an empty cache
-            self.save_cache()?;
+            
         }
         Ok(())
     }
@@ -68,31 +71,17 @@ impl Cache {
 
 
     // Save file paths to the cache file
-    pub fn save_cache(&self) -> io::Result<()> {
-        let serialized_cache = serde_bencode::to_string(&self.cache_file_path).unwrap();
-        
-        let mut file =OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(&self.cache_file_path)
-        .unwrap();
+    pub fn save_cache(&self, rom_file_path: &str) -> io::Result<()> {
+        let settings_toml = toml::to_string_pretty(&rom_file_path).unwrap();
+        let mut cache_path = "C:\\Users\\salle\\Documents\\backyard\\EmulatorAppConfigTesting\\cacheFile.toml";
+        let mut file_result =  OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&cache_path)?;
 
-
-        let mut file = File::create(&self.cache_file_path)?;
-        //fs::write(&self.cache_file_path, &serialized)?;
-
-       // file.write_all()
-       
-       file.write_all(
-
-            &zstd::encode_all(serialized_cache.as_bytes(), 0)
-               .expect("Failed to compress cache contents.")
-       ).unwrap();
-
-        // Write the compressed data to the file
-        //let mut file = File::create(&self.cache_file_path)?;
-
-        
+        file_result.write_all(settings_toml.as_bytes())?;
+      
+ 
         Ok(())
     }
 
@@ -108,3 +97,19 @@ impl Cache {
 
 
 
+  
+
+
+
+
+       /*
+       file.write_all(
+
+            &zstd::encode_all(serialized_cache.as_bytes(), 0)
+               .expect("Failed to compress cache contents.")
+       ).unwrap();
+
+        // Write the compressed data to the file
+        //let mut file = File::create(&self.cache_file_path)?;
+*/
+        

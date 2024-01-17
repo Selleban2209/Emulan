@@ -12,8 +12,8 @@ use walkdir::WalkDir;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::io;
-use std::fs::read_dir;
 use std::fs::{self, DirEntry};
+use std::fs::read_dir;
 use std::env;
 
 //use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
@@ -35,7 +35,8 @@ pub struct Emulator {
 #[derive(Serialize)]
 pub struct Gamerom {
     rom_name: String, 
-    rom_extension: String,     
+    rom_extension: String,   
+    rom_path : String,  
 }
 
 
@@ -121,21 +122,23 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     }
 
     let stringer = ext.unwrap();
-    let st2 = stringer.to_string();
+    let st2 = &stringer.clone().to_string();
     println!("{} unrwaped string", st2 );
+    
+    let game_rom1 = Gamerom{
+        rom_name: String::from(filename),
+        rom_extension: String::from(st2),
+        rom_path: String::from(path)
+
+    };
     if roms.iter().any(|&i| i==st2) {
 
         println!("Found item in list");
-
-        let game_rom1 = Gamerom{
-            rom_name: String::from(filename),
-            rom_extension: String::from(st2),
-        };
-
         let serialized = serde_json::to_string(&game_rom1).unwrap();
     
         app.emit_all("event_name", serialized).unwrap();
     }
+
     let ok = get_current_working_dir();
     let yes = ok.unwrap().display().to_string();
     let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
@@ -145,10 +148,12 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     let cache_path =PathBuf::from("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings");
     let mut test_cache = Cache::new(cache_path);
     test_cache.create_cache(&path);
+    test_cache.save_cache(&game_rom1.rom_path);
+
   
  
     match ext{
-        Some("exe")=>println!("YIAH") , 
+        Some("exe")=>println!("YIAH"), 
         _=>println!("default"),
     }
 
