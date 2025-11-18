@@ -27,7 +27,7 @@ use std::env;
 #[derive(Serialize)]
 pub struct Emulator {
     emulator_name: String,
-    path : PathBuf, 
+    emulator_path : PathBuf, 
     filetype_support: Vec<String>,
   
 }
@@ -41,7 +41,7 @@ pub struct Gamerom {
 
 
 //static GBASupport 
-static roms: [&str; 3] = ["nds","gba","iso"];
+static ROMS: [&str; 3] = ["nds","gba","iso"];
 
 //static load_from_directory:Result<Vec<Emulator>, std::io::Error> = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
 
@@ -63,10 +63,10 @@ pub fn find_emulators_on_startup( path: String) -> std::io::Result<Vec<Emulator>
        // println!("PATH: {}", path_str.to_str().unwrap());
         if !path.is_dir(){
             let filename =  path.file_stem().unwrap();
-            println!("PATH2: {}", filename.to_str().unwrap());
+            println!("In Path: {}", filename.to_str().unwrap());
             let  mut emu = Emulator {
                 emulator_name : String::from(filename.to_str().unwrap()),
-                path: PathBuf::from(path),
+                emulator_path: PathBuf::from(path),
                 filetype_support: Vec::from(Vec::new()),
             };
             if emu.emulator_name == "VisualBoyAdvance" {
@@ -81,6 +81,8 @@ pub fn find_emulators_on_startup( path: String) -> std::io::Result<Vec<Emulator>
                 }
             } else if emu.emulator_name == "DeSmuME_0.9.11_x64" {
                 emu.filetype_support.push("nds".to_string());
+                emu.filetype_support.push("gba".to_string());
+
                 emulator_vec.push(emu);
                 for item  in emulator_vec.iter() {
                 }
@@ -118,7 +120,6 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     println!("{:?}", ext);
     if get_extension_from_filename(filename)== Some("exew"){
         println!("oh word uhuh");
-        
     }
 
     let stringer = ext.unwrap();
@@ -131,7 +132,7 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
         rom_path: String::from(path)
 
     };
-    if roms.iter().any(|&i| i==st2) {
+    if ROMS.iter().any(|&i| i==st2) {
 
         println!("Found item in list");
         let serialized = serde_json::to_string(&game_rom1).unwrap();
@@ -147,8 +148,8 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     //let searlized_emulator_list = serde_json::(&test_direct);
     let cache_path =PathBuf::from("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings");
     let mut test_cache = Cache::new(cache_path);
-    test_cache.create_cache(&path);
-    test_cache.save_cache(&game_rom1.rom_path);
+    let _ = test_cache.create_cache(&path);
+    let _ = test_cache.save_cache(&game_rom1.rom_path);
 
   
  
@@ -158,33 +159,14 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     }
 
     
-
     return "".to_string();
 }
 
 
 #[tauri::command]
 fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
-    
- 
 
-
-
-    if name == "VisualBoyAdvance" {
-        let status = Command::new(path)
-        .arg("C:\\Users\\salle\\Documents\\VisualBoy\\Pokemon - Emerald rouge 1.3.2 EX.gba")
-        .spawn()
-        .expect("no rustc?");
-    } else if name == "DeSmuME_0.9.11_x64" {
-        let status = Command::new(path)
-        .arg("C:\\Users\\salle\\Documents\\Desmume\\Randomizer\\POKEMON BLACK 2 RANDOMIZE FAZPTR.nds ")
-        .spawn()
-        .expect("no rustc?");
-        
-    } else {
-        
-    }
-
+    print!("Path to open: {} {}", path, name);
 
     let ext= get_extension_from_filename(filename);
     let rom_extension_name = ext.unwrap().to_string();
@@ -196,12 +178,11 @@ fn open_saved_path(path: &str, name:&str, filename:&str)-> String{
         for i in test_direct {
 
             if i.filetype_support.iter().any(|y| y=="gba"){
-                let status = Command::new(i.path)
-                .arg(path )
+                let status = Command::new(i.emulator_path)
+                .arg(path)
                 .spawn()
                 .expect("no rustc?");   
 
-                println!("we got here");
                 }
             }
     } else if rom_extension_name == "nds" {
@@ -209,30 +190,54 @@ fn open_saved_path(path: &str, name:&str, filename:&str)-> String{
         for i in test_direct {
 
             if i.filetype_support.iter().any(|y| y=="nds"){
-                let status = Command::new(i.path)
-                .arg(path )
+                let status = Command::new(i.emulator_path)
+                .arg(path)
                 .spawn()
-                .expect("no rustc?");   
-
-                println!("we got here");
+                .expect("no rustc?");       
                 }
             }
+}
 
-
-    }
-
-//Trenger searlized liste fra front end.
-
-
-
-
-
+    //Trenger searlized liste fra front end.
     let x = "testing loop";
-     for i in 0..roms.len()  {
-         println!("{}", roms[i]);
+     for i in 0..ROMS.len()  {
+         println!("{}", ROMS[i]);
      }
     
     format!("Path to emulator: {} {}", path, name)
+}
+
+#[tauri::command]
+fn scan_for_games(current_dir : Option<&str>) -> Vec<Gamerom> {
+
+    let mut game_roms: Vec<Gamerom> = Vec::new();
+    let scan_path = match current_dir {
+        Some(dir) => PathBuf::from(dir),
+        None => env::current_dir().unwrap(),
+    };
+    println!("Scanning for games at {:?}", scan_path);
+
+    for entry in WalkDir::new(scan_path).into_iter().filter_map(|e| e.ok()) {
+        if entry.file_type().is_file() {
+            if let Some(ext) = entry.path().extension().and_then(OsStr::to_str) {
+                //print!("Found file with extension: {}\n", ext);
+                if ROMS.contains(&ext) {
+                    let rom = Gamerom {
+                        rom_name: entry.file_name().to_string_lossy().to_string(),
+                        rom_extension: ext.to_string(),
+                        rom_path: entry.path().to_string_lossy().to_string(),
+                    };
+                    game_roms.push(rom);
+                }
+            }
+        }
+    }
+
+    for rom in &game_roms {
+        println!("Found ROM: {} at {}", rom.rom_name, rom.rom_path);
+    }
+
+    game_roms
 }
 
 
@@ -242,7 +247,8 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             open_saved_path,
-            verify_rom
+            verify_rom, 
+            scan_for_games
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

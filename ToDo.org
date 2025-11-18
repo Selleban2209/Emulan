@@ -1,0 +1,12 @@
+*** Functional Tasks
+ * [ ] Check folder recursively for games and load them in a list for user to select 
+    * [ ] Add search bar to filter games by name
+    * [ ] Add system filter dropdown to filter games by system
+ * [ ] Add "Recently Played" section to quickly access recently played games
+ * [ ] Cache file paths to speed up loading times
+*** Design Tasks
+- []
+
+
+
+

@@ -15,13 +15,16 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
 
     let idS = String(id);
     async function openSavedPath(){
-    console.log("extension: ", filename, extension);
-    setErrorMsg(await invoke("open_saved_path", {path, name, filename}).then((message) => console.log(message)));
-
-    }
+    console.log("filename: ", filename,"Exstension ",  extension);
+    setErrorMsg(await invoke("open_saved_path", {path, name, filename})
+        .then((message) => console.log(message))
+        .catch((error) => console.log(error)));
+}
     async function verifyRom(){
     console.log("extension: ", filename, extension);
-    setErrorMsg(await invoke("verify_rom", {path, filename}));
+    setErrorMsg(await invoke("verify_rom", {path, filename}))
+        .then((message) => console.log(message))
+        .catch((error) => console.log(error));
 
     }
 
@@ -33,6 +36,7 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
 
             default: return <p>Platform</p>
         }
+
     }
 
     return (

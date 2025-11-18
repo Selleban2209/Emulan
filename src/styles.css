@@ -14,78 +14,436 @@
   -webkit-text-size-adjust: 100%;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 html {
   height: 100%;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .container {
-  margin: 0;
- 
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
-
-  min-height: 98vh;
+  height: 100vh;
+  margin: 0;
 }
 
-.row { 
+.row {
   background-color: hsl(210, 44%, 13%);
   padding: 10px;
   text-align: center;
   display: flex;
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
- 
-}
-
-.selectFileButton {
-  background-color: #2ecc71;
-  color: #ffffff;
-  padding: 8px 16px;
-  border: none;
-  cursor: pointer;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 2;
+  position: relative;
 }
 
 .flexBox {
   display: flex;
-  margin: 0;
-  flex: 1; /* Take remaining vertical space */
-
+  flex: 1;
+  position: relative;
 }
+
 .sideMenu {
-  
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
   width: 20%;
-  min-width: 150px;
-  background-color: hsl(214, 30%, 9%); /* Change the color as needed */
+  min-width: 180px;
+  background-color: hsl(214, 30%, 9%);
   color: #ffffff;
-
+  overflow-y: auto;
+  padding: 10px;
+  box-sizing: border-box;
+  z-index: 1;
 }
+
+/* Header Menu */
+.headerMenu {
+  background: rgba(9, 2, 25, 0.818);
+  padding: 15px 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  position: relative;
+}
+
+.headerMenu button {
+  min-width: 160px;
+  max-width: 180px;
+  width: 160px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 25px;
+  
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.headerMenu button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 255, 255, 0.1);
+}
+
+.headerMenu button:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+
 .emulatorTab {
+  flex: 1;
+  margin-left: 20%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  background-color: hsl(220, 20%, 10%);
+  overflow-y: auto;
+}
 
+/* Page Layout */
+.page {
+  padding: 30px;
+  color: #ffffff;
+  min-height: 100%;
+}
+
+.page h1,
+.page h2 {
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.page h3 {
+  color: #f6f6f6;
+  margin-bottom: 10px;
+}
+
+.page p {
+  color: #b0b0b0;
+  margin-bottom: 15px;
+}
+
+/* Empty State */
+.emptyState {
   text-align: center;
-  align-items: center;
-  padding: 5px;
-  margin-left: 15%;
-  width: 80%;
+  padding: 60px 20px;
 }
 
+.emptyState p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
 
+/* Console Sections */
+.consoleList {
+  margin-top: 20px;
+}
 
-.row {
+.consoleSection {
+  margin-bottom: 40px;
+}
 
+.consoleSection h2 {
+  border-bottom: 2px solid #396cd8;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.consoleSection p {
+  color: #b0b0b0;
+  margin-bottom: 15px;
+}
+
+/* Game Grid */
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.gameCard {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: hsl(214, 30%, 12%);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.gameCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: #396cd8;
+}
+
+.gameCard h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.gamePath {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.gameCard button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Tabs */
+.tabs {
   display: flex;
-  justify-content: center;
-
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #2a2a2a;
 }
 
+.tabs button {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #b0b0b0;
+  transition: color 0.2s, border-color 0.2s;
+  min-width: auto;
+  width: auto;
+  box-shadow: none;
+}
+
+.tabs button:hover {
+  color: #ffffff;
+  background: transparent;
+}
+
+.tabs button.active {
+  border-bottom-color: #396cd8;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+/* Tab Content */
+.tabContent {
+  padding: 20px 0;
+}
+
+.tabContent h3 {
+  margin-bottom: 10px;
+}
+
+.tabContent p {
+  margin-bottom: 20px;
+}
+
+/* Scanned Files */
+.scannedFiles {
+  margin-top: 20px;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: hsl(214, 30%, 12%);
+}
+
+.scannedFiles h4 {
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+
+.fileList {
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 15px 0;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fileItem:hover {
+  background-color: hsl(214, 30%, 15%);
+}
+
+.fileItem input[type="checkbox"] {
+  margin-right: 10px;
+  cursor: pointer;
+  width: auto;
+  min-width: auto;
+  max-width: none;
+  height: auto;
+  min-height: auto;
+  box-shadow: none;
+}
+
+.fileName {
+  flex: 1;
+  color: #ffffff;
+  text-align: left;
+}
+
+.fileExt {
+  color: #888;
+  font-size: 12px;
+  background-color: #2a2a2a;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Settings */
+.settingsSection {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.settingsSection h3 {
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+.settingsSection p {
+  color: #b0b0b0;
+  margin-bottom: 15px;
+}
+
+/* Modal Overlay - Original Style */
+.modalOverlay {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding-top: 50px;
+  list-style-type: none;
+  text-align: center;
+}
+
+/* Modal for settings confirmation */
+.modal {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modalContent {
+  background-color: hsl(214, 30%, 12%);
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  border: 1px solid #2a2a2a;
+  color: #ffffff;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.modalContent h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+.modalContent p {
+  color: #b0b0b0;
+  margin-bottom: 20px;
+}
+
+.modalContent ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.modalContent li {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modalActions button {
+  min-width: 100px;
+}
+
+/* Buttons */
 input,
 button {
-  min-width: 200px;
-  min-height: 50px;
+  cursor: pointer;
+  min-width: 120px;
+  max-width: 200px;
+  width: 20vw;
+  min-height: 40px;
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -94,12 +452,8 @@ button {
   font-family: inherit;
   color: #0f0f0f;
   background-color: #ffffff;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
 }
 
 button:hover {
@@ -111,19 +465,76 @@ button:active {
   background-color: #e8e8e8;
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+button:disabled:hover {
+  background-color: #0f0f0f98;
+  border-color: transparent;
+}
+
+button.primary {
+  background-color: #2ecc71;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+button.primary:hover {
+  background-color: #27ae60;
+  border-color: #27ae60;
+}
+
+button.primary:active {
+  background-color: #229954;
+}
+
+button.primary:disabled {
+  background-color: #555;
+  border-color: transparent;
+}
+
+button.dangerButton {
+  background-color: #e74c3c;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+button.dangerButton:hover {
+  background-color: #c0392b;
+  border-color: #c0392b;
+}
+
+button.dangerButton:active {
+  background-color: #a93226;
+}
+
+button.dangerButton:disabled {
+  background-color: #555;
+  border-color: transparent;
+}
+
+.backButton {
+  margin-top: 30px;
+}
+
 input,
 button {
   outline: none;
 }
 
-#greet-input {
-  margin-right: 5px;
+ul {
+  list-style-type: none;
+  padding: 0;
 }
 
+/* Dark Mode (Default) */
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
-    background-color: hsl(220, 20%, 10%, 1);
+    background-color: hsl(220, 20%, 10%);
   }
 
   input,
@@ -131,7 +542,47 @@ button {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
+  
   button:active {
     background-color: #0f0f0f69;
+  }
+
+  button.primary {
+    background-color: #2ecc71;
+    color: #ffffff;
+  }
+
+  button.primary:active {
+    background-color: #229954;
+  }
+
+  button.dangerButton {
+    background-color: #e74c3c;
+    color: #ffffff;
+  }
+
+  button.dangerButton:active {
+    background-color: #a93226;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sideMenu {
+    width: 25%;
+    min-width: 150px;
+  }
+
+  .emulatorTab {
+    margin-left: 25%;
+  }
+
+  .gameGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  button {
+    min-width: 100px;
+    max-width: 180px;
   }
 }
