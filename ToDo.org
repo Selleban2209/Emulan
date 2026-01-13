@@ -1,10 +1,27 @@
 *** Functional Tasks
- * [ ] Check folder recursively for games and load them in a list for user to select 
-    * [ ] Add search bar to filter games by name
-    * [ ] Add system filter dropdown to filter games by system
+ * [X] Check folder recursively for games and emulators and load them in a list for user to select 
+  * [X] Add search bar to filter games by name
+  * [X] Launch selected game with the associated emulator, locating the emulator executable automatically
+ * [ ] Track played games and display playtime statistics
+ * [] Save user settings (e.g., last opened emulator, window size) between sessions
+  * [X] Save added emulators and load them on app start
+  * [X] Launch game with saved emulator settings
+  * [ ] Save added games and load them on app start
+  * [X] Support common ROM file formats (e.g., .nes, .sfc, .gba, .nds)
  * [ ] Add "Recently Played" section to quickly access recently played games
  * [ ] Cache file paths to speed up loading times
+
+*** Long Term Tasks
+  * [ ] Download games and emulators directly from within the app
+  * [ ] Link loaded games to an online database
+  * [ ] Add cloud sync for user settings and game data
+  * [ ] Cover art and metadata fetching for games from cloud database
+  
+ *
 *** Design Tasks
+ * [X] Main menu sections divided by system (e.g., NES, SNES, GBA, NDS)
+ * [ ] Add game cover art thumbnails next to game titles in the list
+ 
 - []
 
 

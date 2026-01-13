@@ -1,16 +1,11 @@
 .asideMenu{
     min-width: 15%;
     height: 100%;
-
     display: inline-block;
     justify-content: space-between;
     z-index:-1;
     font-size: 14px;
-    
     text-align: left;
-
-
-
 }
 
 

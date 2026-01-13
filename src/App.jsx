@@ -3,7 +3,7 @@ import { useState, useRef, createRef , path} from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useNavigate, Route, Routes, Router } from "react-router-dom";
-import { EmulatorInstance , SideMenu, GameView,ManageGamesPage, SettingsPage , MainMenuPage} from "./components/export";
+import { EmulatorInstance , SideMenu, GameView,ManageGamesPage, SettingsPage , MainMenuPage, EmulatorManagementPage} from "./components/export";
 import {open, save ,  } from  "@tauri-apps/api/dialog";
 import { basename, resolveResource ,extname} from '@tauri-apps/api/path';
 import "./App.css";
@@ -43,17 +43,19 @@ function App() {
         <button onClick={()=> navigate('/')} className="homeButton">Games Library</button>
         <button onClick={()=> navigate('/settings')} className="settingsButton">Settings</button>  
         <button onClick={()=> navigate('/manage-games')} className="manageGamesButton">Manage Games</button>
+        <button onClick={()=> navigate('/manage-emulators')} className="manageEmulatorsButton">Manage Emulators</button>
       </div>
       <div className="flexBox">
        
         <div className="sideMenu">
-          <SideMenu className="sideMenu" value={emulators}/>
+          
         </div>
         <div className="emulatorTab">
           <Routes>
             <Route path="/" element={<MainMenuPage emulators={emulators} />} />
             <Route path="/manage-games" element={<ManageGamesPage handleAddEmulator={handleAddEmulator} />} />
-            <Route path="/settings" element={<SettingsPage emulators={emulators} setEmulators={setEmulators} />} />
+            <Route path="/settings" element={<SettingsPage emulators={emulators} setEmulators={setEmulators}  setId ={setId} />} />
+            <Route path="/manage-emulators" element={<EmulatorManagementPage />} />
             {emulators.map((item) => (   
               <Route key={item.id} path={`/${item.subpath}`} element={<EmulatorInstance {...item} />} />
             ))}   

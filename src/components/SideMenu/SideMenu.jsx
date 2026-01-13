@@ -18,8 +18,6 @@ function SideMenu (emuList){
             {emulators.map((item) =>(
                 <CustomLink to={`/${item.subpath}`}>{item.name}</CustomLink>
               ))}
-
-              
             </ul>
         </div>
 
@@ -43,13 +41,3 @@ function CustomLink({ to, children, ...props }) {
 
 export default SideMenu; 
 
-
-/*
-
-{emulators.map((item) =>(
-                <CustomLink to={item.path}>{item.name}</CustomLink>
-                ))}
-
-
-                <CustomLink to="/login"> login </CustomLink>
-*/

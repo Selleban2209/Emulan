@@ -1,39 +1,48 @@
-// MainMenuPage.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import "./MainMenuPage.css";
 
 function MainMenuPage({ emulators }) {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Group games by console type based on extension
   const groupByConsole = () => {
     const groups = {};
     
     emulators.forEach(emu => {
-      if (emu.default) return; // Skip the home item
+      if (emu.default) return;
       
-      let console = 'Unknown';
-      switch(emu.extension?.toLowerCase()) {
-        case '.gba':
-          console = 'Game Boy Advance';
+      // Filter by search query
+      if (searchQuery && !emu.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return; // Skip games that don't match search
+      }
+      
+      // Normalize extension
+      const ext = emu.extension?.toLowerCase().replace('.', '');
+      
+      let gameconsole = 'Unknown';
+      switch(ext) {
+        case 'gba':
+          gameconsole = 'Game Boy Advance';
           break;
-        case '.nds':
-          console = 'Nintendo DS';
+        case 'nds':
+          gameconsole = 'Nintendo DS';
           break;
-        case '.iso':
-          console = 'ISO Games';
+        case 'iso':
+          gameconsole = 'ISO Games';
           break;
-        case '.exe':
-          console = 'PC Games';
+        case 'exe':
+          gameconsole = 'PC Games';
           break;
         default:
-          console = 'Other';
+          gameconsole = 'Other';
       }
       
-      if (!groups[console]) {
-        groups[console] = [];
+      if (!groups[gameconsole]) {
+        groups[gameconsole] = [];
       }
-      groups[console].push(emu);
+      groups[gameconsole].push(emu);
     });
     
     return groups;
@@ -41,16 +50,49 @@ function MainMenuPage({ emulators }) {
 
   const consoleGroups = groupByConsole();
   const totalGames = emulators.filter(emu => !emu.default).length;
+  
+  // Count filtered games
+  const filteredGamesCount = Object.values(consoleGroups)
+    .reduce((sum, games) => sum + games.length, 0);
 
   return (
     <div className="page">
       <h1>Game Library</h1>
-      <p>Total Games: {totalGames}</p>
+      
+      <div className="searchContainer">
+        <input 
+          type="text" 
+          placeholder="Search games..." 
+          className="searchInput" 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button 
+            className="clearSearch" 
+            onClick={() => setSearchQuery('')}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      
+      <p>
+        {searchQuery 
+          ? `Showing ${filteredGamesCount} of ${totalGames} games`
+          : `Total Games: ${totalGames}`
+        }
+      </p>
       
       {totalGames === 0 ? (
         <div className="emptyState">
           <p>No games in your library yet.</p>
           <button onClick={() => navigate('/manage-games')}>Add Games</button>
+        </div>
+      ) : filteredGamesCount === 0 ? (
+        <div className="emptyState">
+          <p>No games found matching "{searchQuery}"</p>
+          <button onClick={() => setSearchQuery('')}>Clear Search</button>
         </div>
       ) : (
         <div className="consoleList">
@@ -63,7 +105,10 @@ function MainMenuPage({ emulators }) {
                   <div key={game.id} className="gameCard" onClick={() => navigate(`/${game.subpath}`)}>
                     <h3>{game.name}</h3>
                     <p className="gamePath">{game.filename}</p>
-                    <button onClick={(e) => { e.stopPropagation();navigate(`/${game.subpath}`);}}>
+                    <button onClick={(e) => { 
+                      e.stopPropagation();
+                      navigate(`/${game.subpath}`);
+                    }}>
                       Play
                     </button>
                   </div>
@@ -71,10 +116,9 @@ function MainMenuPage({ emulators }) {
               </div>
             </div>
           ))}
-         <button onClick={() => navigate('/manage-games')}>Add Games</button>
+          <button onClick={() => navigate('/manage-games')}>Add Games</button>
         </div>
       )}
-      
     </div>
   );
 }

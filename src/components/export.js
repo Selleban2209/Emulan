@@ -4,7 +4,7 @@ import GameView from "./GameView/GameView";
 import SettingsPage from "./Settings/SettingsPage";
 import ManageGamesPage from "./GameManager/ManageGamesPage";
 import MainMenuPage from "./MainMenu/MainMenuPage";
-
+import EmulatorManagementPage from "./EmulatorManager/EmulatorManagementPage";
 
 export {
     EmulatorInstance,
@@ -12,6 +12,7 @@ export {
     GameView,
     SettingsPage,
     ManageGamesPage,
+    EmulatorManagementPage,
     MainMenuPage
 
 

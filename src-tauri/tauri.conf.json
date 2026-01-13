@@ -35,7 +35,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.Bunii.Emulan",
       "targets": "all"
     },
     "security": {
@@ -49,8 +49,8 @@
         "fullscreen": false,
         "resizable": true,
         "title": "Emulan",
-        "width": 800,
-        "height": 600
+        "width": 920,
+        "height": 680
       }
     ]
   }

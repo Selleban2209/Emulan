@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { open } from "@tauri-apps/api/dialog";
 import { basename, resolveResource } from '@tauri-apps/api/path';
 import { invoke } from "@tauri-apps/api/tauri";
+import "./ManageGamesPage.css";
 
 function ManageGamesPage({ handleAddEmulator }) {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ function ManageGamesPage({ handleAddEmulator }) {
   const addSelectedFiles = () => {
     if (selectedFiles.length === 0) return;
     
-    console.log("Adding:", selectedFiles);
+    console.log("Adding games:", selectedFiles);
     
     const newEmulators = selectedFiles.map((file) => ({
       name: file.rom_name,
@@ -69,7 +70,7 @@ function ManageGamesPage({ handleAddEmulator }) {
         const resourcePath = await resolveResource(selectedPath);
         const base = await basename(resourcePath);
         var emulatorName = base.substring(0, base.lastIndexOf('.'));
-        var extension = base.substring(base.lastIndexOf('.'), base.length);
+        var extension = base.substring(base.lastIndexOf('.'), base.length).toLowerCase().replace('.','');
 
         handleAddEmulator([{
           name: emulatorName,
@@ -77,7 +78,7 @@ function ManageGamesPage({ handleAddEmulator }) {
           filename: base,
           extension: extension
         }]);
-        
+        console.log ("Added single file:", selectedPath, extension);
         navigate('/');
       }
     } catch (error) {

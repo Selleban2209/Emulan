@@ -15,8 +15,8 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
 
     let idS = String(id);
     async function openSavedPath(){
-    console.log("filename: ", filename,"Exstension ",  extension);
-    setErrorMsg(await invoke("open_saved_path", {path, name, filename})
+    console.log("filename: ", filename,"Exstension: ",  extension);
+    setErrorMsg(await invoke("open_saved_path", {path, name, filename, extension})
         .then((message) => console.log(message))
         .catch((error) => console.log(error)));
 }

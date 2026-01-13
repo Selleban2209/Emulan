@@ -2,6 +2,7 @@
 mod setting_cache;
 
 use setting_cache::Cache;
+use tauri::api::path::app_data_dir;
 use std::fs::File;
 use tauri::{Manager, Window, AppHandle};
 use std::io::prelude::*;
@@ -24,13 +25,19 @@ use std::env;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 
-#[derive(Serialize)]
-pub struct Emulator {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EmulatorConfig {
     emulator_name: String,
     emulator_path : PathBuf, 
     filetype_support: Vec<String>,
   
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EmulatorSettings {
+    pub emulators: Vec<EmulatorConfig>,
+}
+
 
 #[derive(Serialize)]
 pub struct Gamerom {
@@ -40,7 +47,7 @@ pub struct Gamerom {
 }
 
 
-//static GBASupport 
+//static GBASupport, NDSsupport, ISOsupport
 static ROMS: [&str; 3] = ["nds","gba","iso"];
 
 //static load_from_directory:Result<Vec<Emulator>, std::io::Error> = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
@@ -53,68 +60,80 @@ fn get_extension_from_filename(filename: &str) -> Option<&str> {
     .and_then(OsStr::to_str)
 }
 
-pub fn find_emulators_on_startup( path: String) -> std::io::Result<Vec<Emulator>> {
-    let cur_path =read_dir(path);   
-    let mut emulator_vec: Vec<Emulator> = Vec::new();
-    for entry in cur_path? {
+
+pub fn find_emulators_in_directory(path: String) -> std::io::Result<Vec<EmulatorConfig>> {
+    let cur_path = read_dir(path)?;   
+    let mut emulator_vec: Vec<EmulatorConfig> = Vec::new();
+    
+    for entry in cur_path {
         let path = entry?.path();
-        // Get path string.
-        let path_str = path.file_name().unwrap();
-       // println!("PATH: {}", path_str.to_str().unwrap());
-        if !path.is_dir(){
-            let filename =  path.file_stem().unwrap();
-            println!("In Path: {}", filename.to_str().unwrap());
-            let  mut emu = Emulator {
-                emulator_name : String::from(filename.to_str().unwrap()),
-                emulator_path: PathBuf::from(path),
-                filetype_support: Vec::from(Vec::new()),
+        
+        if !path.is_dir() {
+            let filename = path.file_stem().unwrap();
+            let filename_str = filename.to_str().unwrap();
+            
+            println!("Found file: {}", filename_str);
+            
+            let mut emu = EmulatorConfig  {
+                emulator_name: String::from(filename_str),
+                emulator_path: path.clone(),
+                filetype_support: Vec::new(),
             };
-            if emu.emulator_name == "VisualBoyAdvance" {
             
-               emu.filetype_support.push("gba".to_string());
-               println!("filetype list: {:?}", emu.filetype_support);
-               emulator_vec.push(emu);
-               println!("Test vec len {}", emulator_vec.len());
-               for item  in emulator_vec.iter() {
-                   println!("item in list { }", item.emulator_name);
-                   println!("type support: {:?}", item.filetype_support);
-                }
-            } else if emu.emulator_name == "DeSmuME_0.9.11_x64" {
-                emu.filetype_support.push("nds".to_string());
+    
+            if filename_str.contains("VisualBoyAdvance") || filename_str.contains("gba") {
+                emu.emulator_name = "VisualBoyAdvance".to_string();
                 emu.filetype_support.push("gba".to_string());
-
                 emulator_vec.push(emu);
-                for item  in emulator_vec.iter() {
-                }
-
+            } else if filename_str.contains("DeSmuME") {
+                emu.emulator_name = "DeSmuME".to_string();
+                emu.filetype_support.push("nds".to_string());
+                //emu.filetype_support.push("gba".to_string());
+                emulator_vec.push(emu);
+            } else if filename_str.contains("Dolphin") || filename_str.contains("dolphin") {
+                emu.emulator_name = "Dolphin".to_string();
+                emu.filetype_support.push("iso".to_string());
+                
+                emulator_vec.push(emu);
             }
-            
-
+            // Add more emulator detection here
         }
-
-
-    }    
-   // println!("The current directory is {}", cur_path?.to_string().unwrap());
-    return Ok(emulator_vec);
-}  
-
-/*
-pub fn find_emulators_on_startup( path: String) -> std::io::Result<()> {
-    1. Kjøre gjennom mappe, finne emulator fil/ mappe(gjør mappe senere), lage struct -->  Nesten ferdig
-    2. Fyll liste med emulatorer.
-    3.når vi åpner en rom som er .gba skal vi lete gjennom emulatorer som supporter GBA og åpne den deerfra med riktig launch options
-
+    }
+    
+    Ok(emulator_vec)
 }
-*/
+
+
 
 
 fn get_current_working_dir() -> std::io::Result<PathBuf> {
     env::current_dir()
 }
 
-#[tauri::command]
-fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
+fn test_current_dir(app_handle: AppHandle) -> Result<String, String> {
+    let app_dir = app_data_dir(&app_handle.config())
+        .ok_or("Failed to get app data directory")?;
 
+    //fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+
+    Ok(app_dir.display().to_string())
+}
+
+fn get_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_dir = app_data_dir(&app_handle.config())
+        .ok_or("Failed to get app data directory")?;
+    
+    fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
+    
+    Ok(app_dir.join("emulator_config.json"))
+}
+
+#[tauri::command]
+fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
+
+    let str_test= get_config_path(&app_handle);
+    println!("testing current dir {:#?}", str_test.clone());
+    
     let ext= get_extension_from_filename(filename);
 
     println!("{:?}", ext);
@@ -137,12 +156,12 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
         println!("Found item in list");
         let serialized = serde_json::to_string(&game_rom1).unwrap();
     
-        app.emit_all("event_name", serialized).unwrap();
+        app_handle.emit_all("event_name", serialized).unwrap();
     }
 
     let ok = get_current_working_dir();
     let yes = ok.unwrap().display().to_string();
-    let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
+    let test_direct = find_emulators_in_directory("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
 
     //println!("test directoy scan {}", test_direct.unwrap().len());
     //let searlized_emulator_list = serde_json::(&test_direct);
@@ -162,50 +181,155 @@ fn verify_rom(app: AppHandle ,path:&str, filename:&str) ->String {
     return "".to_string();
 }
 
+#[tauri::command]
+fn load_emulator_config(app_handle: tauri::AppHandle) -> Result<EmulatorSettings, String> {
+    let config_path = get_config_path(&app_handle)?;
+    
+    if config_path.exists() {
+        let contents = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config: {}", e))?;
+        
+        let settings: EmulatorSettings = serde_json::from_str(&contents)
+            .map_err(|e| format!("Failed to parse config: {}", e))?;
+        
+        Ok(settings)
+    } else {
+        // First run - create default config
+        let settings = EmulatorSettings {
+            emulators: Vec::new(),
+        };
+        //save_emulator_config(app_handle, settings.clone())?;
+        Ok(settings)
+    }
+}
+
+
+// Add a single emulator manually
+#[tauri::command]
+fn add_emulator_manually(
+    app_handle: tauri::AppHandle,
+    emulator_path: String,
+    emulator_name: String,
+    supported_extensions: Vec<String>
+) -> Result<(), String> {
+    let mut config = load_emulator_config(app_handle.clone())?;
+    
+    // Check if already exists
+    let exists = config.emulators.iter().any(|e| e.emulator_path == PathBuf::from(&emulator_path));
+    
+    if exists {
+        return Err("Emulator already exists in configuration".to_string());
+    }
+    
+    let new_emulator = EmulatorConfig {
+        emulator_name,
+        emulator_path: PathBuf::from(emulator_path),
+        filetype_support: supported_extensions,
+    };
+    
+    config.emulators.push(new_emulator);
+    save_emulator_config(app_handle, config)?;
+    
+    Ok(())
+}
 
 #[tauri::command]
-fn open_saved_path(path: &str, name:&str, filename:&str)-> String{ 
-
-    print!("Path to open: {} {}", path, name);
-
-    let ext= get_extension_from_filename(filename);
-    let rom_extension_name = ext.unwrap().to_string();
-
-    println!("################### {}", ext.unwrap().to_string());
-
-    if rom_extension_name == "gba"{
-        let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string()).unwrap();
-        for i in test_direct {
-
-            if i.filetype_support.iter().any(|y| y=="gba"){
-                let status = Command::new(i.emulator_path)
-                .arg(path)
-                .spawn()
-                .expect("no rustc?");   
-
-                }
-            }
-    } else if rom_extension_name == "nds" {
-        let test_direct = find_emulators_on_startup("C:\\Users\\salle\\Documents\\Desmume".to_string()).unwrap();
-        for i in test_direct {
-
-            if i.filetype_support.iter().any(|y| y=="nds"){
-                let status = Command::new(i.emulator_path)
-                .arg(path)
-                .spawn()
-                .expect("no rustc?");       
-                }
-            }
+fn get_all_emulators(app_handle: tauri::AppHandle) -> Result<Vec<EmulatorConfig>, String> {
+    let config = load_emulator_config(app_handle)?;
+    Ok(config.emulators)
 }
 
-    //Trenger searlized liste fra front end.
-    let x = "testing loop";
-     for i in 0..ROMS.len()  {
-         println!("{}", ROMS[i]);
-     }
+
+
+#[tauri::command]
+fn open_saved_path(
+    app_handle: tauri::AppHandle,
+    path: &str, 
+    name: &str, 
+    filename: &str,
+    extension: &str
+) -> Result<String, String> { 
+    println!("Path to open: {} {}", path, name);
+
+    // Get the file extension
+    let ext = get_extension_from_filename(filename)
+        .ok_or("Failed to get file extension")?;
+    let rom_extension = ext.to_string();
+
+    println!("ROM extension: {}", rom_extension);
+
+    // Load the emulator configuration
+    let config = load_emulator_config(app_handle)?;
+
+    // Find an emulator that supports this file type
+    let emulator = config.emulators.iter()
+        .find(|e| e.filetype_support.iter().any(|ext| ext == &rom_extension))
+        .ok_or(format!("No emulator configured for .{} files. Please configure an emulator in Settings.", rom_extension))?;
+
+    println!("Using emulator: {} at path: {:?}", emulator.emulator_name, emulator.emulator_path);
+
+    // Launch the emulator with the ROM
+    let status = Command::new(&emulator.emulator_path)
+        .arg(path)
+        .spawn()
+        .map_err(|e| format!("Failed to launch emulator: {}", e))?;
+
+    Ok(format!("Launched {} with {}", name, emulator.emulator_name))
+}
+
+
+// Launch a game with the appropriate emulator
+/*#[tauri::command]
+pub fn launch_game(
+    app_handle: tauri::AppHandle,
+    rom_path: String,
+    rom_extension: String
+) -> Result<String, String> {
+    let config = load_emulator_config(app_handle)?;
     
-    format!("Path to emulator: {} {}", path, name)
+    // Find emulator that supports this extension
+    let emulator = config.emulators.iter()
+        .find(|e| e.filetype_support.contains(&rom_extension.replace(".", "")))
+        .ok_or(format!("No emulator configured for .{} files", rom_extension))?;
+    
+    // Launch the emulator
+    std::process::Command::new(&emulator.emulator_path)
+        .arg(&rom_path)
+        .spawn()
+        .map_err(|e| format!("Failed to launch emulator: {}", e))?;
+    
+    Ok(format!("Launched {} with {}", rom_path, emulator.emulator_name))
 }
+*/
+#[tauri::command]
+fn save_emulator_config(
+    app_handle: tauri::AppHandle,
+    config: EmulatorSettings
+) -> Result<(), String> {
+    // 1. Get the path (creates directory if needed)
+    let config_path = get_config_path(&app_handle)?;
+    
+    // 2. Convert your config struct to JSON string
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    // 3. WRITE the file to disk
+    fs::write(&config_path, json)
+        .map_err(|e| format!("Failed to write config: {}", e))?;
+    
+    Ok(())
+}
+
+fn save_game_roms_to_cache(roms: &Vec<Gamerom>, cache_path: &PathBuf) -> Result<(), String> {
+    let serialized = serde_json::to_string_pretty(roms)
+        .map_err(|e| format!("Failed to serialize game ROMs: {}", e))?;
+    
+    fs::write(cache_path, serialized)
+        .map_err(|e| format!("Failed to write game ROMs to cache: {}", e))?;
+    
+    Ok(())
+}
+
 
 #[tauri::command]
 fn scan_for_games(current_dir : Option<&str>) -> Vec<Gamerom> {
@@ -241,6 +365,8 @@ fn scan_for_games(current_dir : Option<&str>) -> Vec<Gamerom> {
 }
 
 
+
+
 //   .arg( "C:\\Users\\salle\\Documents\\Backyard\\Emulan\\src-tauri\\src" ) // <- Specify the directory you'd like to open.
 fn main() {
     
@@ -248,6 +374,10 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             open_saved_path,
             verify_rom, 
+            save_emulator_config,
+            load_emulator_config,
+            add_emulator_manually,
+            get_all_emulators,
             scan_for_games
             ])
         .run(tauri::generate_context!())

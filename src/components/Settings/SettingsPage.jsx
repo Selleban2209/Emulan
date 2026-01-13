@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function SettingsPage({ emulators, setEmulators }) {
+function SettingsPage({ emulators, setEmulators, setId }) {
   const navigate = useNavigate();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -10,6 +10,7 @@ function SettingsPage({ emulators, setEmulators }) {
     // Keep only the default "Home" item
     setEmulators(emulators.filter(emu => emu.default));
     setShowClearConfirm(false);
+    setId(1); // Reset ID counter
   };
 
   const totalGames = emulators.filter(emu => !emu.default).length;
