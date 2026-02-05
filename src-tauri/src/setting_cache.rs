@@ -28,26 +28,7 @@ impl Cache {
     
       // Save file paths to the cache file
     pub fn create_cache(&mut self, rom_file_path: &str) -> io::Result<()> {
-                
-        let path =&self.cache_file_path.clone();  
-        let my_str = &path.as_path().to_string_lossy();
-        
-        println!("okaoskdaoskda {}", my_str);
-
-        //current error: 
-        //error seems to be file creation related causing function to return early 
-        let mut file_string = Path::new("C:\\Users\\salle\\Documents\\backyard\\EmulatorAppConfigTesting\\cacheFile.toml");
-
-        
-        
-        let file = match File::create(&file_string){
-            Ok(file) => file,
-            Err(err) => {
-                eprintln!("Error creating file: {}", err);
-                return Err(err);
-            }
-        };
-       
+   
         Ok(())
     }
 
@@ -73,13 +54,7 @@ impl Cache {
     // Save file paths to the cache file
     pub fn save_cache(&self, rom_file_path: &str) -> io::Result<()> {
         let settings_toml = toml::to_string_pretty(&rom_file_path).unwrap();
-        let mut cache_path = "C:\\Users\\salle\\Documents\\backyard\\EmulatorAppConfigTesting\\cacheFile.toml";
-        let mut file_result =  OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&cache_path)?;
 
-        file_result.write_all(settings_toml.as_bytes())?;
       
  
         Ok(())

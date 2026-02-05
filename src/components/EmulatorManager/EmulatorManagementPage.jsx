@@ -16,8 +16,9 @@ function EmulatorManagementPage() {
 
   const loadEmulators = async () => {
     try {
-      const emuList = await invoke('get_all_emulators');
+      const emuList = await invoke('load_emulators_cache');
       setEmulators(emuList);
+      console.log(`Loaded ${emuList.length} emulators from cache`);
     } catch (error) {
       console.error('Failed to load emulators:', error);
     } finally {

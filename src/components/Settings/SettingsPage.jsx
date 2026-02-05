@@ -1,19 +1,21 @@
 // SettingsPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { invoke } from "@tauri-apps/api/tauri";
 
-function SettingsPage({ emulators, setEmulators, setId }) {
+function SettingsPage({ games, setGames, setId }) {
   const navigate = useNavigate();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  const clearAllGames = () => {
+  const clearAllGames = async () => {
     // Keep only the default "Home" item
-    setEmulators(emulators.filter(emu => emu.default));
+    setGames(games.filter(game => game.default));
     setShowClearConfirm(false);
     setId(1); // Reset ID counter
+    const clear = await invoke('clear_game_cache');
   };
 
-  const totalGames = emulators.filter(emu => !emu.default).length;
+  const totalGames = games.filter(game => !game.default).length;
 
   return (
     <div className="page">

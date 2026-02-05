@@ -2,25 +2,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "./MainMenuPage.css";
 
-function MainMenuPage({ emulators }) {
+function MainMenuPage({ games }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-
+  
   // Group games by console type based on extension
   const groupByConsole = () => {
     const groups = {};
     
-    emulators.forEach(emu => {
-      if (emu.default) return;
+    games.forEach(game => {
+      if (game.default) return;
+      
       
       // Filter by search query
-      if (searchQuery && !emu.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (searchQuery && !game.rom_name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return; // Skip games that don't match search
       }
       
-      // Normalize extension
-      const ext = emu.extension?.toLowerCase().replace('.', '');
       
+      // Normalize extension
+      const ext = game.rom_extension?.toLowerCase().replace('.', '');
+
       let gameconsole = 'Unknown';
       switch(ext) {
         case 'gba':
@@ -42,15 +44,15 @@ function MainMenuPage({ emulators }) {
       if (!groups[gameconsole]) {
         groups[gameconsole] = [];
       }
-      groups[gameconsole].push(emu);
+      groups[gameconsole].push(game);
     });
     
     return groups;
   };
 
   const consoleGroups = groupByConsole();
-  const totalGames = emulators.filter(emu => !emu.default).length;
-  
+  const totalGames = games.filter(game => !game.default).length;
+
   // Count filtered games
   const filteredGamesCount = Object.values(consoleGroups)
     .reduce((sum, games) => sum + games.length, 0);
@@ -102,12 +104,12 @@ function MainMenuPage({ emulators }) {
               <p>{games.length} game(s)</p>
               <div className="gameGrid">
                 {games.map((game) => (
-                  <div key={game.id} className="gameCard" onClick={() => navigate(`/${game.subpath}`)}>
-                    <h3>{game.name}</h3>
-                    <p className="gamePath">{game.filename}</p>
+                  <div key={game.rom_id} className="gameCard" onClick={() => navigate(`/${game.rom_subpath}`)}>
+                    <h3>{game.rom_name}</h3>
+                    <p className="gamePath">{game.rom_name}</p>
                     <button onClick={(e) => { 
                       e.stopPropagation();
-                      navigate(`/${game.subpath}`);
+                      navigate(`/${game.rom_subpath}`);
                     }}>
                       Play
                     </button>

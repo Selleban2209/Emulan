@@ -11,31 +11,72 @@ import "./App.css";
 function App() {
   const navigate = useNavigate();
   const [id, setId] = useState(1);
-  const [emulators, setEmulators] = useState([
-    {  
-      id: 0,
-      name: "Home",
-      path: "",
-      subpath: "home",
-      component: <p>Test element component </p>,
-      default: true,
-    }
-  ]);
+  const [games, setGames] = useState([]);
 
-  const handleAddEmulator = (files) => {
-    const newEmulators = files.map((file, index) => ({
-      id: id + index,
-      name: file.name || file.rom_name,
-      path: file.path || file.rom_path,
-      filename: file.filename || file.rom_name,
-      extension: file.extension || file.rom_extension,
-      subpath: (file.name || file.rom_name).replace(/\s+/g, '-'), // Make URL-friendly
-      component: <p>Test element component </p>,
-    }));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+
+  useEffect(() => {
+    loadGamesFromCache();
+  }, []);
+
+
+
+  const loadGamesFromCache = async () => {
+    console.log("Loading games from cache...");
+    setLoading(true);
+    setError(null);
     
-    setEmulators(prevEmulators => [...prevEmulators, ...newEmulators]);
-    setId(prevId => prevId + files.length);
-  }
+    try {
+      const cache = await invoke('load_games_cache');
+      console.log(`Loaded ${cache.games.length} games from cache`);
+      setGames(cache.games);
+    } catch (err) {
+      console.error('Failed to load games:', err);
+      setError('Failed to load game library');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddGames = async (newGames) => {
+    console.log(`Adding ${newGames} games...`);
+    
+
+    const formattedGames = newGames.map((game, index) => ({    
+      rom_id: id + index,
+      rom_name: game.rom_name || game.name,
+      rom_path: game.rom_path || game.path,
+      rom_filename: game.rom_filename,
+      rom_extension: game.rom_extension || game.extension,
+      rom_subpath: (game.rom_name || game.name).replace(/\s+/g, '-'),
+     // date_added: new Date().toISOString(),
+     // last_played: null
+    }));
+
+    console.log("Formatted games to add:", formattedGames);
+
+    try {
+      
+      const addedGames = await invoke('add_games_to_cache', { 
+        roms: formattedGames 
+      });
+      console.log("Added games:", addedGames);
+
+      if (addedGames.length > 0) {
+        setGames(prevGames => [...prevGames, ...addedGames]);
+        setId(prevId => prevId + addedGames.length);
+      }
+      console.log("Updated games list:", games);
+    } catch (err) {
+      console.error('Failed to add games:', err);
+      
+      await loadGamesFromCache();
+      throw err;
+    }
+  };
+
 
   return (
     <div className="container">
@@ -52,12 +93,12 @@ function App() {
         </div>
         <div className="emulatorTab">
           <Routes>
-            <Route path="/" element={<MainMenuPage emulators={emulators} />} />
-            <Route path="/manage-games" element={<ManageGamesPage handleAddEmulator={handleAddEmulator} />} />
-            <Route path="/settings" element={<SettingsPage emulators={emulators} setEmulators={setEmulators}  setId ={setId} />} />
+            <Route path="/" element={<MainMenuPage games={games} />} />
+            <Route path="/manage-games" element={<ManageGamesPage handleAddGames={handleAddGames} />} />
+            <Route path="/settings" element={<SettingsPage games={games} setGames={setGames}  setId ={setId} />} />
             <Route path="/manage-emulators" element={<EmulatorManagementPage />} />
-            {emulators.map((item) => (   
-              <Route key={item.id} path={`/${item.subpath}`} element={<EmulatorInstance {...item} />} />
+            {games.map((game) => (   
+              <Route key={game.rom_id} path={`/${game.rom_subpath}`} element={<EmulatorInstance {...game} />} />
             ))}   
           </Routes>
         </div>

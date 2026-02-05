@@ -16,7 +16,7 @@ function SideMenu (emuList){
           <Link to="/" className="upperLinkMenu"> Main menu test</Link>
             <ul>
             {emulators.map((item) =>(
-                <CustomLink to={`/${item.subpath}`}>{item.name}</CustomLink>
+                <CustomLink to={`/${item.rom_subpath}`}>{item.rom_name}</CustomLink>
               ))}
             </ul>
         </div>

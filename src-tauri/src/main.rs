@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod setting_cache;
 
+use serde_json::json;
 use setting_cache::Cache;
 use tauri::api::path::app_data_dir;
 use std::fs::File;
@@ -39,18 +40,32 @@ pub struct EmulatorSettings {
 }
 
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Gamerom {
-    rom_name: String, 
-    rom_extension: String,   
-    rom_path : String,  
+    pub rom_id : Option<u32>,
+    pub rom_name: String,
+    pub rom_path : String,  
+    pub rom_filename: Option<String>,
+    pub rom_extension: String,   
+    pub rom_subpath: Option<String>,
+/*
+    pub date_added: String, // ISO 8601 format
+    pub last_played: Option<String>, // Optional - track when last played
+*/
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GameRomCache {
+    pub games: Vec<Gamerom>,
+    pub total_count: usize,
+}
+
 
 
 //static GBASupport, NDSsupport, ISOsupport
 static ROMS: [&str; 3] = ["nds","gba","iso"];
 
-//static load_from_directory:Result<Vec<Emulator>, std::io::Error> = find_emulators_on_startup("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
+
 
 
 #[tauri::command]
@@ -119,19 +134,32 @@ fn test_current_dir(app_handle: AppHandle) -> Result<String, String> {
     Ok(app_dir.display().to_string())
 }
 
-fn get_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+fn get_app_data_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    app_data_dir(&app_handle.config())
+        .ok_or("Failed to get app data directory".to_string())?;
+    
     let app_dir = app_data_dir(&app_handle.config())
         .ok_or("Failed to get app data directory")?;
     
     fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
     
-    Ok(app_dir.join("emulator_config.json"))
+    Ok(app_dir)
 }
+
+fn get_emulator_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    Ok(get_app_data_dir(app_handle)?.join("emulator_config.json"))
+}
+
+fn get_game_cache_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    Ok(get_app_data_dir(app_handle)?.join("game_roms_cache.json"))
+}
+
+
 
 #[tauri::command]
 fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
 
-    let str_test= get_config_path(&app_handle);
+    let str_test= get_emulator_config_path(&app_handle);
     println!("testing current dir {:#?}", str_test.clone());
     
     let ext= get_extension_from_filename(filename);
@@ -146,9 +174,12 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
     println!("{} unrwaped string", st2 );
     
     let game_rom1 = Gamerom{
+        rom_id : None,
         rom_name: String::from(filename),
         rom_extension: String::from(st2),
-        rom_path: String::from(path)
+        rom_filename: Some(String::from(filename)),
+        rom_path: String::from(path),
+        rom_subpath: None,
 
     };
     if ROMS.iter().any(|&i| i==st2) {
@@ -159,18 +190,11 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
         app_handle.emit_all("event_name", serialized).unwrap();
     }
 
-    let ok = get_current_working_dir();
-    let yes = ok.unwrap().display().to_string();
-    let test_direct = find_emulators_in_directory("C:\\Users\\salle\\Documents\\VisualBoy".to_string());
+
 
     //println!("test directoy scan {}", test_direct.unwrap().len());
     //let searlized_emulator_list = serde_json::(&test_direct);
-    let cache_path =PathBuf::from("C:\\Users\\salle\\Documents\\backyard\\Emulan\\src-tauri\\settings");
-    let mut test_cache = Cache::new(cache_path);
-    let _ = test_cache.create_cache(&path);
-    let _ = test_cache.save_cache(&game_rom1.rom_path);
 
-  
  
     match ext{
         Some("exe")=>println!("YIAH"), 
@@ -181,9 +205,32 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
     return "".to_string();
 }
 
+
+
+#[tauri::command]
+fn save_emulator_config(
+    app_handle: tauri::AppHandle,
+    config: EmulatorSettings
+) -> Result<(), String> {
+    // 1. Get the path (creates directory if needed)
+    let config_path = get_emulator_config_path(&app_handle)?;
+    
+    // 2. Convert your config struct to JSON string
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    // 3. WRITE the file to disk
+    fs::write(&config_path, json)
+        .map_err(|e| format!("Failed to write config: {}", e))?;
+    
+    Ok(())
+}
+
+
+
 #[tauri::command]
 fn load_emulator_config(app_handle: tauri::AppHandle) -> Result<EmulatorSettings, String> {
-    let config_path = get_config_path(&app_handle)?;
+    let config_path = get_emulator_config_path(&app_handle)?;
     
     if config_path.exists() {
         let contents = fs::read_to_string(&config_path)
@@ -202,6 +249,8 @@ fn load_emulator_config(app_handle: tauri::AppHandle) -> Result<EmulatorSettings
         Ok(settings)
     }
 }
+
+
 
 
 // Add a single emulator manually
@@ -233,8 +282,10 @@ fn add_emulator_manually(
     Ok(())
 }
 
+
+
 #[tauri::command]
-fn get_all_emulators(app_handle: tauri::AppHandle) -> Result<Vec<EmulatorConfig>, String> {
+fn load_emulators_cache(app_handle: tauri::AppHandle) -> Result<Vec<EmulatorConfig>, String> {
     let config = load_emulator_config(app_handle)?;
     Ok(config.emulators)
 }
@@ -249,7 +300,7 @@ fn open_saved_path(
     filename: &str,
     extension: &str
 ) -> Result<String, String> { 
-    println!("Path to open: {} {}", path, name);
+    println!("Path to open: {} : {}", path, filename);
 
     // Get the file extension
     let ext = get_extension_from_filename(filename)
@@ -266,69 +317,115 @@ fn open_saved_path(
         .find(|e| e.filetype_support.iter().any(|ext| ext == &rom_extension))
         .ok_or(format!("No emulator configured for .{} files. Please configure an emulator in Settings.", rom_extension))?;
 
+
+    //needs error handling here if no emulator found
+
     println!("Using emulator: {} at path: {:?}", emulator.emulator_name, emulator.emulator_path);
 
     // Launch the emulator with the ROM
-    let status = Command::new(&emulator.emulator_path)
-        .arg(path)
+    std::process::Command::new(&emulator.emulator_path)
+        .arg(&path)
         .spawn()
         .map_err(|e| format!("Failed to launch emulator: {}", e))?;
 
     Ok(format!("Launched {} with {}", name, emulator.emulator_name))
 }
 
+// Game ROM Cache Functions
 
-// Launch a game with the appropriate emulator
-/*#[tauri::command]
-pub fn launch_game(
-    app_handle: tauri::AppHandle,
-    rom_path: String,
-    rom_extension: String
-) -> Result<String, String> {
-    let config = load_emulator_config(app_handle)?;
-    
-    // Find emulator that supports this extension
-    let emulator = config.emulators.iter()
-        .find(|e| e.filetype_support.contains(&rom_extension.replace(".", "")))
-        .ok_or(format!("No emulator configured for .{} files", rom_extension))?;
-    
-    // Launch the emulator
-    std::process::Command::new(&emulator.emulator_path)
-        .arg(&rom_path)
-        .spawn()
-        .map_err(|e| format!("Failed to launch emulator: {}", e))?;
-    
-    Ok(format!("Launched {} with {}", rom_path, emulator.emulator_name))
-}
-*/
 #[tauri::command]
-fn save_emulator_config(
-    app_handle: tauri::AppHandle,
-    config: EmulatorSettings
-) -> Result<(), String> {
-    // 1. Get the path (creates directory if needed)
-    let config_path = get_config_path(&app_handle)?;
+fn load_games_cache(app_handle: tauri::AppHandle) -> Result<GameRomCache, String> {
+    println!("Loading game cache from disk...");
+    read_game_cache(&app_handle)
+}
+
+fn read_game_cache(app_handle: &tauri::AppHandle) -> Result<GameRomCache, String> {
+    let cache_path = get_game_cache_path(app_handle)?;
     
-    // 2. Convert your config struct to JSON string
-    let json = serde_json::to_string_pretty(&config)
-        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    if cache_path.exists() {
+        let contents = fs::read_to_string(&cache_path)
+            .map_err(|e| format!("Failed to read game cache: {}", e))?;
+        
+        let cache: GameRomCache = serde_json::from_str(&contents)
+            .map_err(|e| format!("Failed to parse game cache: {}", e))?;
+        
+        Ok(cache)
+    } else {
+        Ok(GameRomCache {
+            games: Vec::new(),
+            total_count: 0,
+        })
+    }
+}
+
+pub fn save_games_cache(app_handle: &tauri::AppHandle, cache: &GameRomCache) -> Result<(), String> {
+    let cache_path = get_game_cache_path(app_handle)?;
     
-    // 3. WRITE the file to disk
-    fs::write(&config_path, json)
-        .map_err(|e| format!("Failed to write config: {}", e))?;
+    let json = serde_json::to_string_pretty(&cache)
+        .map_err(|e: serde_json::Error| format!("Failed to serialize game cache: {}", e))?;
+    
+    
+    fs::write(&cache_path, json)
+        .map_err(|e| format!("Failed to write game cache: {}", e))?;
     
     Ok(())
 }
 
-fn save_game_roms_to_cache(roms: &Vec<Gamerom>, cache_path: &PathBuf) -> Result<(), String> {
-    let serialized = serde_json::to_string_pretty(roms)
-        .map_err(|e| format!("Failed to serialize game ROMs: {}", e))?;
+#[tauri::command]
+fn clear_game_cache(app_handle: tauri::AppHandle) -> Result<(), String> {
+
+    let cache_path = get_game_cache_path(&app_handle)?;
+    println!("CLEARING CACHE FILE AT: {}", cache_path.display());
     
-    fs::write(cache_path, serialized)
-        .map_err(|e| format!("Failed to write game ROMs to cache: {}", e))?;
-    
+    let empty_cache = json!({
+        "games": [],
+        "total_count": 0
+    });
+
+    let json_string = serde_json::to_string_pretty(&empty_cache)
+        .map_err(|e| format!("Failed to serialize empty cache: {}", e))?;
+
+    fs::write(&cache_path, json_string)
+        .map_err(|e| format!("Failed to write cache file: {}", e))?;
+
     Ok(())
 }
+
+
+#[tauri::command]
+fn add_games_to_cache(
+    app_handle: tauri::AppHandle,
+    roms: Vec<Gamerom>
+) -> Result<Vec<Gamerom>, String> {
+    println!("Adding {} games to cache...", roms.len());
+    
+    let mut cache = read_game_cache(&app_handle)?;
+    let mut added_games = Vec::new();
+    
+    for rom in roms {
+        // Check if game already exists (by path)
+        let exists = cache.games.iter().any(|r| r.rom_path == rom.rom_path);
+        
+        if !exists {
+            println!("Adding new game: {}", rom.rom_name);
+            added_games.push(rom.clone());
+            cache.games.push(rom);
+        } else {
+            println!("Game already exists, skipping: {}", rom.rom_name);
+        }
+    }
+    
+    if !added_games.is_empty() {
+        cache.total_count = cache.games.len();
+        save_games_cache(&app_handle, &cache)?;
+        println!("Successfully added {} games", added_games.len());
+    } else {
+        println!("No new games to add");
+    }
+    
+    Ok(added_games)
+}
+
 
 
 #[tauri::command]
@@ -347,9 +444,12 @@ fn scan_for_games(current_dir : Option<&str>) -> Vec<Gamerom> {
                 //print!("Found file with extension: {}\n", ext);
                 if ROMS.contains(&ext) {
                     let rom = Gamerom {
+                        rom_id : None,
                         rom_name: entry.file_name().to_string_lossy().to_string(),
                         rom_extension: ext.to_string(),
+                        rom_filename: Some(entry.file_name().to_string_lossy().to_string()),
                         rom_path: entry.path().to_string_lossy().to_string(),
+                        rom_subpath: None,
                     };
                     game_roms.push(rom);
                 }
@@ -367,7 +467,7 @@ fn scan_for_games(current_dir : Option<&str>) -> Vec<Gamerom> {
 
 
 
-//   .arg( "C:\\Users\\salle\\Documents\\Backyard\\Emulan\\src-tauri\\src" ) // <- Specify the directory you'd like to open.
+
 fn main() {
     
     tauri::Builder::default()
@@ -377,7 +477,12 @@ fn main() {
             save_emulator_config,
             load_emulator_config,
             add_emulator_manually,
-            get_all_emulators,
+            
+            add_games_to_cache,
+            load_games_cache,
+            clear_game_cache,
+
+            load_emulators_cache,
             scan_for_games
             ])
         .run(tauri::generate_context!())

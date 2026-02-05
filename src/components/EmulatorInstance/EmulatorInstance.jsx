@@ -10,26 +10,37 @@ const listenTest = await listen("event_name", (eventPayload)  => {
 });
 
 
-function EmulatorInstance ({name, id, path,filename, extension} ){
+function EmulatorInstance ({rom_id, rom_name, rom_path, rom_filename, rom_extension, rom_subpath  } ){
     const [errorMsg, setErrorMsg] = useState("");
 
-    let idS = String(id);
+    let idS = String(rom_id);
     async function openSavedPath(){
-    console.log("filename: ", filename,"Exstension: ",  extension);
-    setErrorMsg(await invoke("open_saved_path", {path, name, filename, extension})
-        .then((message) => console.log(message))
-        .catch((error) => console.log(error)));
-}
+        console.log("OPENING! filename: ", rom_filename,"Exstension: ", rom_extension);
+        invoke("open_saved_path", {
+            path: rom_path,
+            name: rom_name,
+            filename: rom_filename,
+            extension: rom_extension,
+        })
+        .then((message) => {
+            console.log(message);
+            setErrorMsg(message);
+        })
+        .catch((error) => {
+            console.error(error);
+            setErrorMsg(String(error));
+        });   
+    }
     async function verifyRom(){
-    console.log("extension: ", filename, extension);
-    setErrorMsg(await invoke("verify_rom", {path, filename}))
+    console.log("extension: ", rom_filename, rom_extension);
+    setErrorMsg(await invoke("verify_rom", {path: rom_path,  filename: rom_filename}))
         .then((message) => console.log(message))
         .catch((error) => console.log(error));
 
     }
 
     function RenderPlatform  (){
-        switch (name){
+        switch (rom_name){
             case "Project64": return (<><p>N64</p><img src={logos.nintendo64Logo} alt="" /></>);
 
             case "DeSmuME_0.9.11_x64": return (<><p>NDS</p> <img src={logos.NDSLogo} alt="" style={{width:"90px",height:"20px"}}/></>);       
@@ -41,9 +52,9 @@ function EmulatorInstance ({name, id, path,filename, extension} ){
 
     return (
     <div className="instance-div">
-        <p>{name}</p>
+        <p>{rom_name}</p>
         <RenderPlatform />
-        <p>{id}</p>
+        <p>{rom_id}</p>
         <button className="verifyBtn" onClick={()=>verifyRom()}>Verify</button>
         <button className="openBtn" onClick={()=>openSavedPath()}>Open Emulator</button>     
     </div>

@@ -6,7 +6,7 @@ import { basename, resolveResource } from '@tauri-apps/api/path';
 import { invoke } from "@tauri-apps/api/tauri";
 import "./ManageGamesPage.css";
 
-function ManageGamesPage({ handleAddEmulator }) {
+function ManageGamesPage({ handleAddGames }) {
   const navigate = useNavigate();
   const [scannedFiles, setScannedFiles] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -41,14 +41,14 @@ function ManageGamesPage({ handleAddEmulator }) {
     
     console.log("Adding games:", selectedFiles);
     
-    const newEmulators = selectedFiles.map((file) => ({
-      name: file.rom_name,
-      path: file.rom_path,
-      filename: file.rom_name,
-      extension: file.rom_extension,
+    const newGameRoms = selectedFiles.map((file) => ({
+      rom_name: file.rom_name.substring(0, file.rom_name.lastIndexOf('.')),
+      rom_path: file.rom_path,
+      rom_filename: file.rom_name,
+      rom_extension: file.rom_extension,
     }));
     
-    handleAddEmulator(newEmulators);
+    handleAddGames(newGameRoms);
     setSelectedFiles([]);
     setScannedFiles([]);
     navigate('/');
@@ -72,13 +72,15 @@ function ManageGamesPage({ handleAddEmulator }) {
         var emulatorName = base.substring(0, base.lastIndexOf('.'));
         var extension = base.substring(base.lastIndexOf('.'), base.length).toLowerCase().replace('.','');
 
-        handleAddEmulator([{
-          name: emulatorName,
-          path: String(selectedPath),
-          filename: base,
-          extension: extension
+        handleAddGames([{
+          rom_name: emulatorName,
+          rom_path: String(selectedPath),
+          rom_filename: base,
+          rom_extension: extension
         }]);
-        console.log ("Added single file:", selectedPath, extension);
+
+        
+        console.log ("Added single file:", selectedPath, " extension: ", base);
         navigate('/');
       }
     } catch (error) {
