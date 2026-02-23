@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { useNavigate, Route, Routes, Router } from "react-router-dom";
 import { EmulatorInstance , SideMenu, GameView,ManageGamesPage, SettingsPage , MainMenuPage, EmulatorManagementPage} from "./components/export";
 import {open, save ,  } from  "@tauri-apps/api/dialog";
+import { listen } from '@tauri-apps/api/event'
 import { basename, resolveResource ,extname} from '@tauri-apps/api/path';
 import "./App.css";
 
@@ -16,10 +17,45 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
+  const [activeSessions, setActiveSessions] = useState([]);
   useEffect(() => {
     loadGamesFromCache();
+    setupEventListeners();
+    startSessionPolling();
+    
+    
+    return () => { };
   }, []);
+  
+
+  const setupEventListeners = async () => {
+    
+    const unlisten = await listen('game-session-ended', (event) => {
+      console.log('Game session ended:', event.payload);
+      loadGamesFromCache();
+      loadActiveSessions();
+    });
+
+    return unlisten;
+  };
+
+  const startSessionPolling = () => {
+    
+    const interval = setInterval(() => {
+      loadActiveSessions();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  };
+
+  const loadActiveSessions = async () => {
+    try {
+      const sessions = await invoke('get_active_sessions');
+      setActiveSessions(sessions);
+    } catch (error) {
+      console.error('Failed to load active sessions:', error);
+    }
+  };
 
 
 
@@ -51,6 +87,8 @@ function App() {
       rom_filename: game.rom_filename,
       rom_extension: game.rom_extension || game.extension,
       rom_subpath: (game.rom_name || game.name).replace(/\s+/g, '-'),
+      total_playtime_seconds: 0,
+      last_played: null,
      // date_added: new Date().toISOString(),
      // last_played: null
     }));
@@ -93,12 +131,12 @@ function App() {
         </div>
         <div className="emulatorTab">
           <Routes>
-            <Route path="/" element={<MainMenuPage games={games} />} />
+            <Route path="/" element={<MainMenuPage games={games} activeSessions={activeSessions} />} />
             <Route path="/manage-games" element={<ManageGamesPage handleAddGames={handleAddGames} />} />
             <Route path="/settings" element={<SettingsPage games={games} setGames={setGames}  setId ={setId} />} />
             <Route path="/manage-emulators" element={<EmulatorManagementPage />} />
             {games.map((game) => (   
-              <Route key={game.rom_id} path={`/${game.rom_subpath}`} element={<EmulatorInstance {...game} />} />
+              <Route  path={`/${game.rom_subpath}`} element={<EmulatorInstance game={game} />} />
             ))}   
           </Routes>
         </div>

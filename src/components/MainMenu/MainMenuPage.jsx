@@ -1,22 +1,42 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from '@tauri-apps/api/event';
 import { useNavigate } from 'react-router-dom';
+
 import "./MainMenuPage.css";
 
-function MainMenuPage({ games }) {
+function MainMenuPage({ games , activeSessions}) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Group games by console type based on extension
+  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+
+  useEffect(() => {
+    loadRecentlyPlayed(); 
+  }, [games]);  
+
+
+  const loadRecentlyPlayed = async () => {
+    try {
+      setLoadingRecent(true);
+      const recent = await invoke('get_recently_played_games', { limit: 5 });
+      setRecentlyPlayed(recent);
+      console.log('Loaded recently played:', recent);
+    } catch (error) {
+      console.error('Failed to load recently played games:', error);
+    } finally {
+      setLoadingRecent(false);
+    }
+  };
+
   const groupByConsole = () => {
     const groups = {};
     
     games.forEach(game => {
       if (game.default) return;
       
-      
-      // Filter by search query
       if (searchQuery && !game.rom_name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return; // Skip games that don't match search
+        return; 
       }
       
       
@@ -50,17 +70,55 @@ function MainMenuPage({ games }) {
     return groups;
   };
 
+  const playGame = async (game) => {
+      navigate(`/${game.rom_subpath}`);
+  };
+  const isGameActive = (romPath) => {
+    return activeSessions?.some(([path]) => path === romPath);
+  };
+
   const consoleGroups = groupByConsole();
+
   const totalGames = games.filter(game => !game.default).length;
 
-  // Count filtered games
+  const formatPlaytime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
+  const formatLastPlayed = (timestamp) => {
+    if (!timestamp) return 'Never';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+  };
+  
   const filteredGamesCount = Object.values(consoleGroups)
     .reduce((sum, games) => sum + games.length, 0);
 
   return (
     <div className="page">
-      <h1>Game Library</h1>
       
+      <h1>Game Library</h1>
       <div className="searchContainer">
         <input 
           type="text" 
@@ -69,6 +127,7 @@ function MainMenuPage({ games }) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        
         {searchQuery && (
           <button 
             className="clearSearch" 
@@ -78,6 +137,81 @@ function MainMenuPage({ games }) {
           </button>
         )}
       </div>
+      
+      <div className="addGamesContainer">
+        <button className="addGamesButton" onClick={() => navigate('/manage-games')}>Add Games</button>
+      </div>
+
+      {!loadingRecent && recentlyPlayed.length > 0 &&  !searchQuery && (
+        
+        <div className="recentlyPlayedSection">
+          <div className="sectionHeader">
+            <h2>Recently Played</h2>
+            <button 
+              className="viewAllButton"
+              onClick={() => {/* Optional: navigate to stats page */}}
+            >
+              View All →
+            </button>
+          </div>
+          
+          <div className="recentlyPlayedStrip">
+            {recentlyPlayed.map((game) => {
+              const isActive = isGameActive(game.rom_path);
+              
+              return (
+                <div
+                  key={game.rom_path}
+                  className={`recentGameCard ${isActive ? 'playing' : ''}`}
+                  onClick={() => playGame(game)}
+                >
+                  
+                  <div className="recentGameThumbnail">
+                    <div className="thumbnailPlaceholder">
+                      <span className="gameInitial">
+                        {game.rom_id}
+                      </span>
+                    </div>
+                    {isActive && (
+                      <div className="playingBadge">
+                        <span className="pulseDot"></span>
+                        PLAYING
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Game Info */}
+                  <div className="recentGameInfo">
+                    <h4 className="recentGameTitle">{game.rom_name}</h4>
+                    
+                    <div className="recentGameMeta">
+                      <div className="metaItem">
+                        <span className="metaIcon">⏱️</span>
+                        <span className="metaText">
+                          {formatPlaytime(game.total_playtime_seconds)}
+                        </span>
+                      </div>
+                      
+                   
+                    </div>
+
+                    <div className="lastPlayedText">
+                      {formatLastPlayed(game.last_played)}
+                    </div>
+                  </div>
+
+                  
+                  <div className="recentGameOverlay">
+                    <button className="playOverlayButton">
+                      ▶ {isActive ? 'View' : 'Play'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       
       <p>
         {searchQuery 
@@ -118,7 +252,7 @@ function MainMenuPage({ games }) {
               </div>
             </div>
           ))}
-          <button onClick={() => navigate('/manage-games')}>Add Games</button>
+      
         </div>
       )}
     </div>

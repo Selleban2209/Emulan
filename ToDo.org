@@ -3,7 +3,8 @@
   * [X] Add search bar to filter games by name
   * [X] Launch selected game with the associated emulator, locating the emulator executable automatically
  * [X] Remove games and emulators from the list 
- * [ ] Track played games and display playtime statistics
+ 
+ - [ ] Track played games and display playtime statistics --> Current Task 
  * [] Save user settings (e.g., last opened emulator, window size) between sessions
   * [X] Save added emulators and load them on app start
   * [X] Launch game with saved emulator settings
@@ -11,6 +12,9 @@
   * [X] Support common ROM file formats (e.g., .nes, .sfc, .gba, .nds)
  * [ ] Add "Recently Played" section to quickly access recently played games
  * [ ] Cache file paths to speed up loading times
+ * [ ] Game rom checksum verification
+
+
 
 *** Long Term Tasks
   * [ ] Download games and emulators directly from within the app
