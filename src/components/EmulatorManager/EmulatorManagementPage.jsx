@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
 import { useNavigate } from 'react-router-dom';
+import "./EmulatorManagementPage.css";
 
 function EmulatorManagementPage() {
   const navigate = useNavigate();
@@ -137,7 +138,7 @@ function EmulatorManagementPage() {
   }
 
   return (
-    <div className="page">
+    <div className="emulatorManagerPage">
       <h2>Emulator Management</h2>
 
       <div className="emulatorActions">

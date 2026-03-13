@@ -89,7 +89,7 @@ function ManageGamesPage({ handleAddGames }) {
   }
 
   return (
-    <div className="page">
+    <div className="manageGamesPage">
       <h2>Manage Games</h2>
       <div className="tabs">
         <button 

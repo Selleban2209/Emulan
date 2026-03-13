@@ -1,18 +1,33 @@
-
-
 .mainMenuPage {
-  padding: 30px;
+  padding: 10px 15px;
+}
+
+
+.mainMenuPage h1,
+.mainMenuPage h2 {
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+.mainMenuPage h3 {
+  color: #f6f6f6;
+  margin-bottom: 10px;
+}
+
+.mainMenuPage p {
+  color: #b0b0b0;
+  margin-bottom: 15px;
 }
 
 .recentlyPlayedSection {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .sectionHeader h2 {
@@ -316,7 +331,7 @@
 .gameGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  gap: 12px;
 }
 
 /* Game Card Updates */

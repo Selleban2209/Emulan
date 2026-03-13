@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from "@tauri-apps/api/tauri";
+import "./SettingsPage.css";
 
 function SettingsPage({ games, setGames, setId }) {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ function SettingsPage({ games, setGames, setId }) {
   const totalGames = games.filter(game => !game.default).length;
 
   return (
-    <div className="page">
+    <div className="settingsPage">
       <h2>Settings</h2>
       
       <div className="settingsSection">

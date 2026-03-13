@@ -22,6 +22,7 @@ open = "3"
 walkdir = "2"
 zstd = "0.12.3"
 chrono = "0.4.43"
+aws-sdk-s3 = "1.96.0"
 
 
 [features]

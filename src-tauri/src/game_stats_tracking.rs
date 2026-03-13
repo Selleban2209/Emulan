@@ -3,9 +3,6 @@
 use serde_json::json;
 
 
-use crate::setting_cache::Cache;
-
-
 use crate::{read_game_cache, save_games_cache};
 use tauri::api::path::app_data_dir;
 use std::fs::File;

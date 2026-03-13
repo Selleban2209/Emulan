@@ -1,0 +1,23 @@
+.emulatorManagerPage {
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+}
+
+.emulatorList {
+    display: flex;
+    flex-direction: column;
+    gap:15px;
+}
+
+.emulatorItem {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: hsl(214, 30%, 12%);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  margin-right:15%;  
+}

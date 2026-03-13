@@ -46,7 +46,7 @@ function MainMenuPage({ games , activeSessions}) {
       let gameconsole = 'Unknown';
       switch(ext) {
         case 'gba':
-          gameconsole = 'Game Boy Advance';
+          gameconsole = 'GameBoy Advance';
           break;
         case 'nds':
           gameconsole = 'Nintendo DS';
@@ -116,7 +116,7 @@ function MainMenuPage({ games , activeSessions}) {
     .reduce((sum, games) => sum + games.length, 0);
 
   return (
-    <div className="page">
+    <div className="mainMenuPage">
       
       <h1>Game Library</h1>
       <div className="searchContainer">
@@ -151,7 +151,7 @@ function MainMenuPage({ games , activeSessions}) {
               className="viewAllButton"
               onClick={() => {/* Optional: navigate to stats page */}}
             >
-              View All →
+              View All 
             </button>
           </div>
           
@@ -180,7 +180,7 @@ function MainMenuPage({ games , activeSessions}) {
                     )}
                   </div>
 
-                  {/* Game Info */}
+                  
                   <div className="recentGameInfo">
                     <h4 className="recentGameTitle">{game.rom_name}</h4>
                     
@@ -191,8 +191,6 @@ function MainMenuPage({ games , activeSessions}) {
                           {formatPlaytime(game.total_playtime_seconds)}
                         </span>
                       </div>
-                      
-                   
                     </div>
 
                     <div className="lastPlayedText">

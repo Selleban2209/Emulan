@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-mod setting_cache;
+
 pub mod game_stats_tracking;
+pub mod cloud_manager;
 use serde_json::json;
-use setting_cache::Cache;
 use tauri::api::path::app_data_dir;
 use std::fs::File;
 use tauri::{AppHandle, Manager, State, Window};
@@ -204,7 +204,7 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
     }
 
     let stringer = ext.unwrap();
-    let st2 = &stringer.clone().to_string();
+    let st2 = &stringer.to_string();
     println!("{} unrwaped string", st2 );
     
     let game_rom1 = Gamerom{
@@ -334,7 +334,7 @@ fn launch_game_with_tracking(
     rom_name: String,
     rom_extension: String,
 ) -> Result<String, String> {
-    println!("=== Launching Game with Tracking ===");
+    println!("\n=== Launching Game with Tracking ===");
     println!("ROM: {}", rom_name);
     println!("Path: {}", rom_path);
 
