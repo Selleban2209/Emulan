@@ -109,12 +109,13 @@ function EmulatorInstance({ game }) {
     }
 
     async function verifyRom() {
-        console.log("Verifying ROM:", game.rom_filename, game.rom_extension);
+        console.log("Verifying ROM:", game.rom_filename, game.rom_extension, game.rom_name);
         
         try {
             const message = await invoke("verify_rom", {
                 path: game.rom_path,
-                filename: game.rom_filename
+                filename: game.rom_filename,
+                romName: game.rom_name
             });
             console.log(message);
             setErrorMsg(message);

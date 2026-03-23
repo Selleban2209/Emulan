@@ -22,7 +22,7 @@ use std::fs::{self, DirEntry};
 use std::fs::read_dir;
 use std::env;
 
-
+use crate::cloud_manager::{cloud_test};
 use crate::game_stats_tracking::{ActiveSession, AppState, monitor_process, update_game_last_played};
 
 //use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
@@ -149,6 +149,9 @@ pub fn find_emulators_in_directory(path: String) -> std::io::Result<Vec<Emulator
         }
     }
     
+    
+    
+
     Ok(emulator_vec)
 }
 
@@ -191,7 +194,7 @@ fn get_game_cache_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String>
 
 
 #[tauri::command]
-fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
+async fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str, rom_name: String) ->Result <String, String> {
 
     let str_test= get_emulator_config_path(&app_handle);
     println!("testing current dir {:#?}", str_test.clone());
@@ -199,10 +202,15 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
     let ext= get_extension_from_filename(filename);
 
     println!("{:?}", ext);
-    if get_extension_from_filename(filename)== Some("exew"){
-        println!("oh word uhuh");
-    }
+    
 
+    let cloud_test_result = cloud_test();
+
+    match cloud_test().await {
+        Ok(_) => println!("Cloud test completed successfully"),
+        Err(e) => eprintln!("Cloud test failed: {}", e),
+    }
+    
     let stringer = ext.unwrap();
     let st2 = &stringer.to_string();
     println!("{} unrwaped string", st2 );
@@ -236,9 +244,9 @@ fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str) ->String {
         Some("exe")=>println!("YIAH"), 
         _=>println!("default"),
     }
-
     
-    return "".to_string();
+    
+    Ok(format!("Verified rom: {} with extension {}", rom_name, st2 ))
 }
 
 
@@ -268,6 +276,7 @@ fn save_emulator_config(
 fn load_emulator_config(app_handle: tauri::AppHandle) -> Result<EmulatorSettings, String> {
     let config_path = get_emulator_config_path(&app_handle)?;
     
+    println!("Loading emulator config from disk");
     if config_path.exists() {
         let contents = fs::read_to_string(&config_path)
             .map_err(|e| format!("Failed to read config: {}", e))?;
@@ -284,6 +293,7 @@ fn load_emulator_config(app_handle: tauri::AppHandle) -> Result<EmulatorSettings
         //save_emulator_config(app_handle, settings.clone())?;
         Ok(settings)
     }
+
 }
 
 
@@ -463,7 +473,7 @@ fn open_saved_path(
 
 #[tauri::command]
 fn load_games_cache(app_handle: tauri::AppHandle) -> Result<GameRomCache, String> {
-    println!("Loading game cache from disk...");
+    println!("Loading games cache from disk...");
     read_game_cache(&app_handle)
 }
 
@@ -665,6 +675,7 @@ fn get_game_stats(
         .find(|g| g.rom_path == rom_path)
         .ok_or(format!("Game not found: {}", rom_path))
 }
+
 
 
 
