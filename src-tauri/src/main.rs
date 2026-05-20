@@ -2,7 +2,9 @@
 
 pub mod game_stats_tracking;
 pub mod cloud_manager;
+pub mod cloud;
 use serde_json::json;
+use dotenv::dotenv;
 use tauri::api::path::app_data_dir;
 use std::fs::File;
 use tauri::{AppHandle, Manager, State, Window};
@@ -21,7 +23,8 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::fs::{self, DirEntry};
 use std::fs::read_dir;
 use std::env;
-
+use crate::cloud::cloud_config::CloudConfig;
+use crate::cloud_manager::{CloudStorage, test_cloud_connection};
 use crate::cloud_manager::{cloud_test};
 use crate::game_stats_tracking::{ActiveSession, AppState, monitor_process, update_game_last_played};
 
@@ -203,14 +206,18 @@ async fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str, rom_name: S
 
     println!("{:?}", ext);
     
-
-    let cloud_test_result = cloud_test();
-
-    match cloud_test().await {
-        Ok(_) => println!("Cloud test completed successfully"),
-        Err(e) => eprintln!("Cloud test failed: {}", e),
-    }
     
+    dotenv().ok();
+ 
+    let cloud_credentials  = CloudConfig::from_env().expect("Failed to load CloudConfig from environment variables");
+     // Configure the client
+    let cloud_storage = CloudStorage::new(cloud_credentials).await; 
+    
+ 
+    
+    let bucket_tests = test_cloud_connection(&cloud_storage.client);
+    
+    print!("Cloud connection test result:\n{}", bucket_tests.await.unwrap_or_else(|e| format!("Error: {}", e)));
     let stringer = ext.unwrap();
     let st2 = &stringer.to_string();
     println!("{} unrwaped string", st2 );
@@ -249,6 +256,55 @@ async fn verify_rom(app_handle: AppHandle ,path:&str, filename:&str, rom_name: S
     Ok(format!("Verified rom: {} with extension {}", rom_name, st2 ))
 }
 
+
+
+async fn init_cloud(state: State<'_, AppState>) -> Result<CloudStorage, String> {
+    dotenv().ok();
+ 
+    let cloud_credentials  = CloudConfig::from_env().map_err(|e| format!("Failed to load CloudConfig: {}", e))?;
+     // Configure the client
+    let cloud_storage = CloudStorage::new(cloud_credentials).await; 
+    
+    let test_result = test_cloud_connection(&cloud_storage.client).await
+        .map_err(|e| format!("Cloud connection test failed: {}", e))?;
+
+    let mut cloud_instance = state.cloud_instance.lock()
+        .map_err(|e| format!("Failed to lock cloud instance: {}", e))?;
+    *cloud_instance = Some(cloud_storage.clone());
+    
+    Ok(cloud_storage)
+}
+
+#[tauri::command]
+async fn upload_rom_to_cloud(game_rom: Gamerom, app_handle: AppHandle, state: State<'_, AppState>) -> Result<String, String> {
+    // Placeholder for upload logic
+    
+
+    let games_cache = load_games_cache(app_handle.clone())?;
+
+    let game = games_cache.games.iter()
+        .find(|g| g.rom_path == game_rom.rom_path)
+        .ok_or("Game not found in local cache")?;
+
+    dotenv().ok();
+
+    let cloud_instance =  init_cloud(state).await?;
+
+    let upload_result = cloud_instance.upload_game_rom(game).await
+        .map_err(|e| format!("Upload failed: {:?}", e))?;
+
+    print!("Upload result file : {:?} of size : {} bytes",
+        upload_result.file_name,
+        upload_result.file_size.to_string());
+
+    Ok(format!(
+        "Upload result file : {:?} of size : {} bytes",
+        upload_result.file_name,
+        upload_result.file_size.to_string()
+    ))
+
+
+}
 
 
 #[tauri::command]
@@ -692,6 +748,7 @@ fn main() {
             load_emulator_config,
             add_emulator_manually,
             launch_game_with_tracking,
+            upload_rom_to_cloud,
 
             get_active_sessions,
             get_recently_played_games,  

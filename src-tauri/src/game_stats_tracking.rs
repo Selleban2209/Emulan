@@ -3,6 +3,7 @@
 use serde_json::json;
 
 
+use crate::cloud_manager::CloudStorage;
 use crate::{read_game_cache, save_games_cache};
 use tauri::api::path::app_data_dir;
 use std::fs::File;
@@ -43,19 +44,20 @@ pub struct ActiveSession {
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub active_sessions: Arc<Mutex<HashMap<String, ActiveSession>>>,
+    pub cloud_instance: Arc<Mutex<Option<CloudStorage>>>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         Self {
             active_sessions: Arc::new(Mutex::new(HashMap::new())),
+            cloud_instance: Arc::new(Mutex::new(None)),
         }
     }
 }
 
 
 
-// ========== HELPER FUNCTIONS ==========
 
 fn get_current_timestamp() -> String {
     chrono::Utc::now().to_rfc3339()
@@ -112,7 +114,7 @@ pub fn monitor_process(
                 duration_seconds: Some(duration_secs),
             });
 
-            println!("Session trackinFgg completed for: {}", rom_name);
+            println!("Session tracking completed for: {}", rom_name);
         }
         Err(e) => {
             eprintln!("Error waiting for process: {}", e);
@@ -124,7 +126,7 @@ pub fn monitor_process(
     }
 }
 
-// ========== CACHE UPDATE FUNCTIONS ==========
+// Caching stuff 
 
 pub fn update_game_last_played(
     app_handle: tauri::AppHandle,

@@ -10,6 +10,8 @@ function EmulatorInstance({ game }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [sessionTime, setSessionTime] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [showUploadConfirm, setShowUploadConfirm] = useState(false);
 
     useEffect(() => {
         loadGameStats();
@@ -125,6 +127,24 @@ function EmulatorInstance({ game }) {
         }
     }
 
+    async function  uploadRomToCloud  ()  {
+        setShowUploadConfirm(false);
+        try {       
+            const message = await invoke('upload_rom_to_cloud', {
+                gameRom: game
+
+            });
+            console.log(message);
+            setErrorMsg(message);
+        } catch (error) {
+            console.error('Upload error:', error);
+            setErrorMsg(String(error));
+        }
+        setShowUploadConfirm(false);
+        
+    }
+
+
     function RenderPlatform() {
         switch (game.rom_name) {
             case "Project64": 
@@ -149,6 +169,8 @@ function EmulatorInstance({ game }) {
                 return <p>Platform</p>;
         }
     }
+
+  
 
     const formatPlaytime = (seconds) => {
         const hours = Math.floor(seconds / 3600);
@@ -183,7 +205,7 @@ function EmulatorInstance({ game }) {
                             </span>
                         </div>
                         <div className="stat-item">
-                            
+                            <span className="stat-label">Play Count:</span>
                             <span className="stat-value">{gameStats.play_count}</span>
                         </div>
                         {gameStats.last_played && (
@@ -214,6 +236,13 @@ function EmulatorInstance({ game }) {
             {/* Game Actions */}
             <div className="game-actions">
                 <button 
+                    className="uploadBtn" 
+                    onClick={() => setShowUploadConfirm(true)}
+                    disabled={loading || isPlaying}
+                >
+                    Upload ROM
+                </button>
+                <button 
                     className="verifyBtn" 
                     onClick={verifyRom}
                     disabled={loading || isPlaying}
@@ -234,6 +263,20 @@ function EmulatorInstance({ game }) {
                 <p className="game-id">Game ID: {game.rom_id}</p>
                 <p className="game-path">Path: {game.rom_path}</p>
             </div>
+
+            {showUploadConfirm && (
+            <div className="modal">
+                <div className="modalContent">
+                    <h3>Upload ROM?</h3>
+                    <p>This will upload the ROM {game.rom_name} to the cloud. </p>
+                        <p>Are you sure you want to proceed?</p>
+                    <div className="modalActions">
+                        <button onClick={() => setShowUploadConfirm(false)}>Cancel</button>
+                        <button onClick={uploadRomToCloud} className="dangerButton">Upload</button>
+                    </div>
+                </div>
+            </div>
+            )}
 
             {/* Error/Status Messages */}
             {errorMsg && (
